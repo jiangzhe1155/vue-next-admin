@@ -18,8 +18,7 @@ const app = createApp(App);
 directive(app);
 other.elSvg(app);
 
-app
-	.use(router)
+app.use(router)
 	.use(store, key)
 	.use(ElementPlus, { i18n: i18n.global.t, size: other.globalComponentSize })
 	.use(i18n)

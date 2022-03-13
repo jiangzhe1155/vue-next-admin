@@ -2,7 +2,7 @@ import { createRouter, createWebHashHistory, RouteRecordRaw } from 'vue-router';
 import NProgress from 'nprogress';
 import 'nprogress/nprogress.css';
 import { store } from '/@/store/index.ts';
-import { Session } from '/@/utils/storage';
+import {Local, Session} from '/@/utils/storage';
 import { NextLoading } from '/@/utils/loading';
 import { staticRoutes, dynamicRoutes } from '/@/router/route';
 import { initFrontEndControlRoutes } from '/@/router/frontEnd';
@@ -93,8 +93,9 @@ export function setCacheTagsViewRoutes() {
  * @returns 返回对比后有权限的路由项
  */
 export function hasRoles(roles: any, route: any) {
-	if (route.meta && route.meta.roles) return roles.some((role: any) => route.meta.roles.includes(role));
-	else return true;
+	// if (route.meta && route.meta.roles) return roles.some((role: any) => route.meta.roles.includes(role));
+	// else return true;
+	return true;
 }
 
 /**
@@ -133,17 +134,18 @@ export function setFilterMenuAndCacheTagsViewRoutes() {
  * @returns 返回有当前用户权限标识的路由数组
  */
 export function setFilterRoute(chil: any) {
-	let filterRoute: any = [];
-	chil.forEach((route: any) => {
-		if (route.meta.roles) {
-			route.meta.roles.forEach((metaRoles: any) => {
-				store.state.userInfos.userInfos.roles.forEach((roles: any) => {
-					if (metaRoles === roles) filterRoute.push({ ...route });
-				});
-			});
-		}
-	});
-	return filterRoute;
+	// let filterRoute: any = [];
+	// chil.forEach((route: any) => {
+	// 	if (route.meta.roles) {
+	// 		route.meta.roles.forEach((metaRoles: any) => {
+	// 			store.state.userInfos.userInfos.roles.forEach((roles: any) => {
+	// 				if (metaRoles === roles) filterRoute.push({ ...route });
+	// 			});
+	// 		});
+	// 	}
+	// });
+	// return filterRoute;
+	return chil;
 }
 
 /**
@@ -192,7 +194,7 @@ if (!isRequestRoutes) initFrontEndControlRoutes();
 router.beforeEach(async (to, from, next) => {
 	NProgress.configure({ showSpinner: false });
 	if (to.meta.title) NProgress.start();
-	const token = Session.get('token');
+	const token = Local.get('token');
 	if (to.path === '/login' && !token) {
 		next();
 		NProgress.done();
