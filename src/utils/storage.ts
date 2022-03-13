@@ -53,7 +53,7 @@ export const Session = {
         // window.localStorage.removeItem("tokenName");
         // window.localStorage.removeItem("tokenValue");
 
-        Local.remove("tokenName");
+        Local.remove("token");
         Local.remove("tokenValue")
     },
 };

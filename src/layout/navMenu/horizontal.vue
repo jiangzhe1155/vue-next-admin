@@ -33,6 +33,10 @@ import { toRefs, reactive, computed, defineComponent, getCurrentInstance, onMoun
 import { useRoute, onBeforeRouteUpdate } from 'vue-router';
 import { useStore } from '/@/store/index';
 import SubItem from '/@/layout/navMenu/subItem.vue';
+import router from "/@/router";
+import {Session} from "/@/utils/storage";
+import {useRequest} from "vue-request";
+import {listSystem, SystemDTO} from "/@/api/userCenter";
 export default defineComponent({
 	name: 'navMenuHorizontal',
 	components: { SubItem },
@@ -53,6 +57,8 @@ export default defineComponent({
 		const menuLists = computed(() => {
 			return props.menuList;
 		});
+
+
 		// 设置横向滚动条可以鼠标滚轮滚动
 		const onElMenuHorizontalScroll = (e: any) => {
 			const eventDelta = e.wheelDelta || -e.deltaY * 40;

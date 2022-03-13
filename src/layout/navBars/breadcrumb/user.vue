@@ -89,6 +89,7 @@ import other from '/@/utils/other';
 import { Session, Local } from '/@/utils/storage';
 import UserNews from '/@/layout/navBars/breadcrumb/userNews.vue';
 import Search from '/@/layout/navBars/breadcrumb/search.vue';
+import {userLogout} from "/@/api/userCenter";
 export default {
 	name: 'layoutBreadcrumbUser',
 	components: { UserNews, Search },
@@ -161,15 +162,15 @@ export default {
 							done();
 						}
 					},
-				})
-					.then(() => {
-						Session.clear(); // 清除缓存/token等
-						resetRoute(); // 删除/重置路由
-						router.push('/login');
-						setTimeout(() => {
-							ElMessage.success(t('message.user.logOutSuccess'));
-						}, 300);
-					})
+				}).then(async () => {
+          await userLogout()
+          Session.clear(); // 清除缓存/token等
+          resetRoute(); // 删除/重置路由
+          router.push('/login');
+          setTimeout(() => {
+            ElMessage.success(t('message.user.logOutSuccess'));
+          }, 300);
+        })
 					.catch(() => {});
 			} else if (path === 'wareHouse') {
 				window.open('https://gitee.com/lyt-top/vue-next-admin');

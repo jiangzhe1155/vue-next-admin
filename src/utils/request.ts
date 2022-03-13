@@ -1,6 +1,7 @@
 import axios from 'axios';
 import {ElMessage, ElMessageBox} from 'element-plus';
 import {Local, Session} from '/@/utils/storage';
+import router from "/@/router";
 
 // 配置新建一个 axios 实例
 const service = axios.create({
@@ -33,7 +34,7 @@ service.interceptors.response.use(
             // `token` 过期或者账号已在别处登录
             if (res.code === "300") {
                 Session.clear(); // 清除浏览器全部临时缓存
-                window.location.href = '/login'; // 去登录页
+                router.push('/login'); // 去登录页面
                 ElMessageBox.alert('你已被登出，请重新登录', '提示', {})
                     .then(() => {
                     })

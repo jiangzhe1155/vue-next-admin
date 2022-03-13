@@ -1,10 +1,11 @@
 import {store} from '/@/store/index.ts';
 import {Local, Session} from '/@/utils/storage';
 import {NextLoading} from '/@/utils/loading';
-import {setAddRoute, setFilterMenuAndCacheTagsViewRoutes} from '/@/router/index';
+import router, {setAddRoute, setFilterMenuAndCacheTagsViewRoutes, setFilterRouteEnd} from '/@/router/index';
 import {dynamicRoutes} from '/@/router/route';
 import {getMenuAdmin, getMenuTest} from '/@/api/menu/index';
-import {getAllSystemRoute} from "/@/api/userCenter";
+import {getAllSystemRoute, getSystemRoute, listSystem, SystemDTO} from "/@/api/userCenter";
+import {useRequest} from "vue-request";
 
 const layouModules: any = import.meta.glob('../layout/routerView/*.{vue,tsx}');
 const viewsModules: any = import.meta.glob('../views/**/*.{vue,tsx}');
@@ -14,6 +15,23 @@ const viewsModules: any = import.meta.glob('../views/**/*.{vue,tsx}');
  * @link 参考：https://cn.vitejs.dev/guide/features.html#json
  */
 const dynamicViewsModules: Record<string, Function> = Object.assign({}, {...layouModules}, {...viewsModules});
+
+
+function dfs(menuList: any) {
+    for (let m of menuList) {
+        if (m.component == 'layout/routerView/parent') {
+            if (m.children) {
+                let path: string = dfs(m.children);
+                if (path) {
+                    return path;
+                }
+            }
+        } else {
+            return m.path;
+        }
+    }
+}
+
 
 /**
  * 后端控制路由：初始化方法，防止刷新时路由丢失
@@ -30,12 +48,23 @@ export async function initBackEndControlRoutes() {
     if (!Local.get('token')) return false;
     // 触发初始化用户信息
     store.dispatch('userInfos/setUserInfos');
+    let systemId = Session.get('systemId');
+    if (!systemId) {
+        let systemListData = await listSystem({});
+        let systems: SystemDTO[] = systemListData.data;
+        systemId = systems[0].id;
+    }
+
     // 获取路由菜单数据
-    const res = await getBackEndControlRoutes();
+    const res = await getBackEndControlRoutes(systemId);
     // 存储接口原始路由（未处理component），根据需求选择使用
     store.dispatch('requestOldRoutes/setBackEndControlRoutes', JSON.parse(JSON.stringify(res.data)));
     // 处理路由（component），替换 dynamicRoutes（/@/router/route）第一个顶级 children 的路由
     dynamicRoutes[0].children = await backEndComponent(res.data);
+
+    // 自动导航到第一个菜单
+    let path = dfs(dynamicRoutes[0].children);
+    dynamicRoutes[0].redirect = path;
     // 添加动态路由
     await setAddRoute();
     // 设置递归过滤有权限的路由到 vuex routesList 中（已处理成多级嵌套路由）及缓存多级嵌套数组处理后的一维数组
@@ -47,9 +76,9 @@ export async function initBackEndControlRoutes() {
  * @description isRequestRoutes 为 true，则开启后端控制路由
  * @returns 返回后端路由菜单数据
  */
-export async function getBackEndControlRoutes() {
+export async function getBackEndControlRoutes(systemId: string) {
     // 模拟 admin 与 test
-    let data = await getAllSystemRoute()
+    let data = await getSystemRoute({systemId: systemId});
     return data;
 }
 
@@ -59,7 +88,7 @@ export async function getBackEndControlRoutes() {
  * @description 路径：/src/views/system/menu/component/addMenu.vue
  */
 export function setBackEndControlRefreshRoutes() {
-    getBackEndControlRoutes();
+    // getBackEndControlRoutes();
 }
 
 /**

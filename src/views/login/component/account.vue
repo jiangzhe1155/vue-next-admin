@@ -75,7 +75,9 @@ import {initBackEndControlRoutes} from '/@/router/backEnd';
 import {useStore} from '/@/store/index';
 import {Local, Session} from '/@/utils/storage';
 import {formatAxis} from '/@/utils/formatTime';
-import {LoginType, userLogin, UserLoginReq} from "/@/api/userCenter";
+import {getSystemRoute, LoginType, userLogin, UserLoginReq} from "/@/api/userCenter";
+import {dynamicRoutes} from "/@/router/route";
+import {setFilterRouteEnd} from "/@/router";
 
 export default defineComponent({
   name: 'loginAccount',
@@ -162,6 +164,22 @@ export default defineComponent({
         signInSuccess();
       }
     };
+
+    function dfs(menuList: any) {
+      for (let m of menuList) {
+        if (m.component == 'layout/routerView/parent') {
+          if (m.children) {
+            let path: string = dfs(m.children);
+            if (path) {
+              return path;
+            }
+          }
+        } else {
+          return m.path;
+        }
+      }
+    }
+
     // 登录成功后的跳转
     const signInSuccess = () => {
       // 初始化登录成功时间问候语
@@ -175,7 +193,7 @@ export default defineComponent({
           query: Object.keys(route.query?.params).length > 0 ? JSON.parse(route.query?.params) : '',
         });
       } else {
-        router.push('/');
+        router.push('/')
       }
       // 登录成功提示
       setTimeout(() => {

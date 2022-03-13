@@ -66,7 +66,7 @@ export const getAllSystemRoute = () => {
     return request.post('/api/userCenter/menu/getAllSystemRoute', {});
 }
 
-export const getSystemRoute = (params: any) => {
+export const getSystemRoute = function (params: any) {
     return request.post('/api/userCenter/menu/getSystemRoute', params);
 }
 

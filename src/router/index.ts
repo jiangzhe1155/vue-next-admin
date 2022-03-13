@@ -205,7 +205,7 @@ router.beforeEach(async (to, from, next) => {
 			resetRoute();
 			NProgress.done();
 		} else if (token && to.path === '/login') {
-			next('/home');
+			next('/');
 			NProgress.done();
 		} else {
 			if (store.state.routesList.routesList.length === 0) {
