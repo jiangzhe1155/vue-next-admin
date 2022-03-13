@@ -165,21 +165,6 @@ export default defineComponent({
       }
     };
 
-    function dfs(menuList: any) {
-      for (let m of menuList) {
-        if (m.component == 'layout/routerView/parent') {
-          if (m.children) {
-            let path: string = dfs(m.children);
-            if (path) {
-              return path;
-            }
-          }
-        } else {
-          return m.path;
-        }
-      }
-    }
-
     // 登录成功后的跳转
     const signInSuccess = () => {
       // 初始化登录成功时间问候语

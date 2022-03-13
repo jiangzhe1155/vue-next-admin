@@ -34,7 +34,7 @@ service.interceptors.response.use(
             // `token` 过期或者账号已在别处登录
             if (res.code === "300") {
                 Session.clear(); // 清除浏览器全部临时缓存
-                router.push('/login'); // 去登录页面
+                window.location.href = '/' // 去登录页面
                 ElMessageBox.alert('你已被登出，请重新登录', '提示', {})
                     .then(() => {
                     })

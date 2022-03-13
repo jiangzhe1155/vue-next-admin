@@ -105,15 +105,15 @@ export function hasRoles(roles: any, route: any) {
  * @returns 返回有权限的路由数组 `meta.roles` 中控制
  */
 export function setFilterHasRolesMenu(routes: any, roles: any) {
-	const menu: any = [];
-	routes.forEach((route: any) => {
-		const item = { ...route };
-		if (hasRoles(roles, item)) {
-			if (item.children) item.children = setFilterHasRolesMenu(item.children, roles);
-			menu.push(item);
-		}
-	});
-	return menu;
+	// const menu: any = [];
+	// routes.forEach((route: any) => {
+	// 	const item = { ...route };
+	// 	if (hasRoles(roles, item)) {
+	// 		if (item.children) item.children = setFilterHasRolesMenu(item.children, roles);
+	// 		menu.push(item);
+	// 	}
+	// });
+	return routes;
 }
 
 /**

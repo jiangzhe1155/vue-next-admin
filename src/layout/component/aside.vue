@@ -90,9 +90,9 @@ export default {
     });
     // 设置/过滤路由（非静态路由/是否显示在菜单中）
     const setFilterRoutes = () => {
-      console.log('获取菜单',store.state.routesList.routesList)
       if (store.state.themeConfig.themeConfig.layout === 'columns') return false;
       state.menuList = filterRoutesFun(store.state.routesList.routesList);
+      console.log(state.menuList)
     };
     // 路由过滤递归函数
     const filterRoutesFun = (arr: Array<object>) => {

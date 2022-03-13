@@ -1,11 +1,9 @@
 import {store} from '/@/store/index.ts';
 import {Local, Session} from '/@/utils/storage';
 import {NextLoading} from '/@/utils/loading';
-import router, {setAddRoute, setFilterMenuAndCacheTagsViewRoutes, setFilterRouteEnd} from '/@/router/index';
+import {setAddRoute, setFilterMenuAndCacheTagsViewRoutes} from '/@/router/index';
 import {dynamicRoutes} from '/@/router/route';
-import {getMenuAdmin, getMenuTest} from '/@/api/menu/index';
-import {getAllSystemRoute, getSystemRoute, listSystem, SystemDTO} from "/@/api/userCenter";
-import {useRequest} from "vue-request";
+import {getSystemRoute, listSystem, SystemDTO} from "/@/api/userCenter";
 
 const layouModules: any = import.meta.glob('../layout/routerView/*.{vue,tsx}');
 const viewsModules: any = import.meta.glob('../views/**/*.{vue,tsx}');
@@ -16,10 +14,9 @@ const viewsModules: any = import.meta.glob('../views/**/*.{vue,tsx}');
  */
 const dynamicViewsModules: Record<string, Function> = Object.assign({}, {...layouModules}, {...viewsModules});
 
-
 function dfs(menuList: any) {
     for (let m of menuList) {
-        if (m.component == 'layout/routerView/parent') {
+        if (m.type === 'menuGroup') {
             if (m.children) {
                 let path: string = dfs(m.children);
                 if (path) {
@@ -30,6 +27,7 @@ function dfs(menuList: any) {
             return m.path;
         }
     }
+    return undefined;
 }
 
 
@@ -76,10 +74,8 @@ export async function initBackEndControlRoutes() {
  * @description isRequestRoutes 为 true，则开启后端控制路由
  * @returns 返回后端路由菜单数据
  */
-export async function getBackEndControlRoutes(systemId: string) {
-    // 模拟 admin 与 test
-    let data = await getSystemRoute({systemId: systemId});
-    return data;
+export function getBackEndControlRoutes(systemId: string) {
+    return getSystemRoute({systemId: systemId});
 }
 
 /**
@@ -88,7 +84,7 @@ export async function getBackEndControlRoutes(systemId: string) {
  * @description 路径：/src/views/system/menu/component/addMenu.vue
  */
 export function setBackEndControlRefreshRoutes() {
-    // getBackEndControlRoutes();
+    getBackEndControlRoutes();
 }
 
 /**

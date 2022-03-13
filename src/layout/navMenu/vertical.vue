@@ -7,7 +7,8 @@
 		:unique-opened="getThemeConfig.isUniqueOpened"
 		:collapse-transition="false"
 	>
-		<template v-for="val in menuLists">
+
+    <template v-for="val in menuLists">
 			<el-sub-menu :index="val.path" v-if="val.children && val.children.length > 0" :key="val.path">
 				<template #title>
 					<SvgIcon :name="val.meta.icon" />
@@ -79,7 +80,8 @@ export default defineComponent({
 		// 页面加载时
 		onMounted(() => {
 			state.defaultActive = setParentHighlight(route);
-		});
+      console.log('激活路由',state.defaultActive)
+    });
 		// 路由更新时
 		onBeforeRouteUpdate((to) => {
 			// 修复：https://gitee.com/lyt-top/vue-next-admin/issues/I3YX6G
