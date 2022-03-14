@@ -1,34 +1,22 @@
 <template>
   <el-form class="login-content-form">
     <el-form-item>
-      <el-input type="text" placeholder="请输入用户名" v-model="ruleForm.userName"
+      <el-input type="text" placeholder="请输入邮箱" v-model="ruleForm.email"
                 clearable autocomplete="off">
         <template #prefix>
           <el-icon class="el-input__icon">
-            <elementUser/>
+            <elementMessage/>
           </el-icon>
         </template>
       </el-input>
     </el-form-item>
     <el-form-item>
-      <el-input
-          type='password'
-          :placeholder="$t('message.account.accountPlaceholder2')"
-          v-model="ruleForm.password"
-          autocomplete="off"
-      >
+      <el-input size="large" show-password v-model="ruleForm.password" type="password"
+                placeholder="请输入密码" clearable>
         <template #prefix>
           <el-icon class="el-input__icon">
-            <elementUnlock/>
+            <elementLock/>
           </el-icon>
-        </template>
-        <template #suffix>
-          <i
-              class="iconfont el-input__icon login-content-password"
-              :class="isShowPassword ? 'icon-yincangmima' : 'icon-xianshimima'"
-              @click="isShowPassword = !isShowPassword"
-          >
-          </i>
         </template>
       </el-input>
     </el-form-item>
@@ -53,6 +41,7 @@ import {formatAxis} from '/@/utils/formatTime';
 import {getSystemRoute, LoginType, userLogin, UserLoginReq} from "/@/api/userCenter";
 import {dynamicRoutes} from "/@/router/route";
 import {setFilterRouteEnd} from "/@/router";
+import {useRequest} from "vue-request";
 
 export default defineComponent({
   name: 'loginAccount',
@@ -65,15 +54,13 @@ export default defineComponent({
     const state = reactive({
       isShowPassword: false,
       ruleForm: {
-        userName: 'jiangzhe1155',
+        email: '1024741733@qq.com',
         password: 'jiang5201314',
-        code: '1234',
       },
       loading: {
         signIn: false,
       },
     });
-
 
     // 时间获取
     const currentTime = computed(() => {
@@ -83,45 +70,45 @@ export default defineComponent({
     const onSignIn = async () => {
       // 模拟数据
       state.loading.signIn = true;
-
       // 用户信息模拟数据
       const userInfos = {
-        userName: state.ruleForm.userName,
-        photo:
-            state.ruleForm.userName === 'admin'
-                ? 'https://ss0.bdstatic.com/70cFvHSh_Q1YnxGkpoWK1HF6hhy/it/u=1813762643,1914315241&fm=26&gp=0.jpg'
-                : 'https://ss1.bdstatic.com/70cFuXSh_Q1YnxGkpoWK1HF6hhy/it/u=317673774,2961727727&fm=26&gp=0.jpg',
+        userName: '江哲',
+        photo: 'https://ss0.bdstatic.com/70cFvHSh_Q1YnxGkpoWK1HF6hhy/it/u=1813762643,1914315241&fm=26&gp=0.jpg',
         time: new Date().getTime(),
         roles: [],
         authBtnList: [],
       };
 
       let loginReq: UserLoginReq = {
-        username: state.ruleForm.userName as string,
+        email: state.ruleForm.email as string,
         password: state.ruleForm.password,
-        loginType: LoginType.password
+        loginType: LoginType.emailPassword
       };
-      let tokenInfo = await userLogin(loginReq);
 
-      // 存储 token 到浏览器缓存
-      Local.set('token', tokenInfo.data.tokenValue);
-      Local.set('tokenName', tokenInfo.data.tokenName);
-
-      // 存储用户信息到浏览器缓存
-      Session.set('userInfo', userInfos);
-      // 1、请注意执行顺序(存储用户信息到vuex)
-      store.dispatch('userInfos/setUserInfos', userInfos);
-      if (!store.state.themeConfig.themeConfig.isRequestRoutes) {
-        // 前端控制路由，2、请注意执行顺序
-        await initFrontEndControlRoutes();
-        signInSuccess();
-      } else {
-        // 模拟后端控制路由，isRequestRoutes 为 true，则开启后端控制路由
-        // 添加完动态路由，再进行 router 跳转，否则可能报错 No match found for location with path "/"
-        await initBackEndControlRoutes();
-        // 执行完 initBackEndControlRoutes，再执行 signInSuccess
-        signInSuccess();
-      }
+      useRequest(userLogin(loginReq), {
+        onSuccess: async (tokenInfo) => {
+          // 存储 token 到浏览器缓存
+          Local.set('token', tokenInfo.data.tokenValue);
+          Local.set('tokenName', tokenInfo.data.tokenName);
+          // 存储用户信息到浏览器缓存
+          Session.set('userInfo', userInfos);
+          // 1、请注意执行顺序(存储用户信息到vuex)
+          store.dispatch('userInfos/setUserInfos', userInfos);
+          if (!store.state.themeConfig.themeConfig.isRequestRoutes) {
+            // 前端控制路由，2、请注意执行顺序
+            await initFrontEndControlRoutes();
+            signInSuccess();
+          } else {
+            // 模拟后端控制路由，isRequestRoutes 为 true，则开启后端控制路由
+            // 添加完动态路由，再进行 router 跳转，否则可能报错 No match found for location with path "/"
+            await initBackEndControlRoutes();
+            // 执行完 initBackEndControlRoutes，再执行 signInSuccess
+            signInSuccess();
+          }
+        }, onError: () => {
+          state.loading.signIn = false;
+        }
+      })
     };
 
     // 登录成功后的跳转
@@ -139,10 +126,11 @@ export default defineComponent({
       } else {
         router.push('/')
       }
+
       // 登录成功提示
       setTimeout(() => {
         // 关闭 loading
-        state.loading.signIn = true;
+        state.loading.signIn = false;
         const signInText = t('message.signInText');
         ElMessage.success(`${currentTimeInfo}，${signInText}`);
         // 修复防止退出登录再进入界面时，需要刷新样式才生效的问题，初始化布局样式等(登录的时候触发，目前方案)

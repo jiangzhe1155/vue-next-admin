@@ -6,7 +6,7 @@ import router from "/@/router";
 // 配置新建一个 axios 实例
 const service = axios.create({
     baseURL: import.meta.env.VITE_API_URL as any,
-    timeout: 50000,
+    timeout: 10000,
     headers: {'Content-Type': 'application/json'},
 });
 
@@ -40,9 +40,16 @@ service.interceptors.response.use(
                     })
                     .catch(() => {
                     });
+            } else {
+                ElMessage({
+                    showClose: true,
+                    message: res.message,
+                    type: 'error',
+                });
             }
-            return Promise.reject(service.interceptors.response);
+            return Promise.reject(response);
         } else {
+
             return response.data;
         }
     },

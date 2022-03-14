@@ -5,14 +5,14 @@ import {setAddRoute, setFilterMenuAndCacheTagsViewRoutes} from '/@/router/index'
 import {dynamicRoutes} from '/@/router/route';
 import {getSystemRoute, listSystem, SystemDTO} from "/@/api/userCenter";
 
-const layouModules: any = import.meta.glob('../layout/routerView/*.{vue,tsx}');
+const layoutModules: any = import.meta.glob('../layout/routerView/*.{vue,tsx}');
 const viewsModules: any = import.meta.glob('../views/**/*.{vue,tsx}');
 /**
  * 获取目录下的 .vue、.tsx 全部文件
  * @method import.meta.glob
  * @link 参考：https://cn.vitejs.dev/guide/features.html#json
  */
-const dynamicViewsModules: Record<string, Function> = Object.assign({}, {...layouModules}, {...viewsModules});
+const dynamicViewsModules: Record<string, Function> = Object.assign({}, {...layoutModules}, {...viewsModules});
 
 function dfs(menuList: any) {
     for (let m of menuList) {
@@ -45,7 +45,7 @@ export async function initBackEndControlRoutes() {
     // 无 token 停止执行下一步
     if (!Local.get('token')) return false;
     // 触发初始化用户信息
-    store.dispatch('userInfos/setUserInfos');
+    await store.dispatch('userInfos/setUserInfos');
     let systemId = Session.get('systemId');
     if (!systemId) {
         let systemListData = await listSystem({});
@@ -56,13 +56,12 @@ export async function initBackEndControlRoutes() {
     // 获取路由菜单数据
     const res = await getBackEndControlRoutes(systemId);
     // 存储接口原始路由（未处理component），根据需求选择使用
-    store.dispatch('requestOldRoutes/setBackEndControlRoutes', JSON.parse(JSON.stringify(res.data)));
+    await store.dispatch('requestOldRoutes/setBackEndControlRoutes', JSON.parse(JSON.stringify(res.data)));
     // 处理路由（component），替换 dynamicRoutes（/@/router/route）第一个顶级 children 的路由
     dynamicRoutes[0].children = await backEndComponent(res.data);
 
     // 自动导航到第一个菜单
-    let path = dfs(dynamicRoutes[0].children);
-    dynamicRoutes[0].redirect = path;
+    dynamicRoutes[0].redirect = dfs(dynamicRoutes[0].children);
     // 添加动态路由
     await setAddRoute();
     // 设置递归过滤有权限的路由到 vuex routesList 中（已处理成多级嵌套路由）及缓存多级嵌套数组处理后的一维数组
@@ -84,7 +83,8 @@ export function getBackEndControlRoutes(systemId: string) {
  * @description 路径：/src/views/system/menu/component/addMenu.vue
  */
 export function setBackEndControlRefreshRoutes() {
-    getBackEndControlRoutes();
+    getBackEndControlRoutes('').then(() => {
+    });
 }
 
 /**
