@@ -1,6 +1,7 @@
 <template>
-  <el-form class="login-content-form">
-    <el-form-item>
+  <el-form class="login-content-form" :rules="rules" ref="formRef"
+           :model="ruleForm">
+    <el-form-item prop="email">
       <el-input type="text" placeholder="请输入邮箱" v-model="ruleForm.email"
                 clearable autocomplete="off">
         <template #prefix>
@@ -10,7 +11,7 @@
         </template>
       </el-input>
     </el-form-item>
-    <el-form-item>
+    <el-form-item prop="password">
       <el-input size="large" show-password v-model="ruleForm.password" type="password"
                 placeholder="请输入密码" clearable>
         <template #prefix>
@@ -21,7 +22,7 @@
       </el-input>
     </el-form-item>
     <el-form-item>
-      <el-button type="primary" class="login-content-submit" round @click="onSignIn" :loading="loading.signIn">
+      <el-button type="primary" class="login-content-submit" round @click="onSignIn(formRef)" :loading="loading.signIn">
         <span>{{ $t('message.account.accountBtnText') }}</span>
       </el-button>
     </el-form-item>
@@ -29,19 +30,18 @@
 </template>
 
 <script lang="ts">
-import {computed, defineComponent, getCurrentInstance, reactive, toRefs} from 'vue';
+import {computed, defineComponent, getCurrentInstance, reactive, ref, toRefs} from 'vue';
 import {useRoute, useRouter} from 'vue-router';
-import {ElMessage} from 'element-plus';
+import {ElForm, ElMessage, FormInstance} from 'element-plus';
 import {useI18n} from 'vue-i18n';
 import {initFrontEndControlRoutes} from '/@/router/frontEnd';
 import {initBackEndControlRoutes} from '/@/router/backEnd';
 import {useStore} from '/@/store/index';
 import {Local, Session} from '/@/utils/storage';
 import {formatAxis} from '/@/utils/formatTime';
-import {getSystemRoute, LoginType, userLogin, UserLoginReq} from "/@/api/userCenter";
-import {dynamicRoutes} from "/@/router/route";
-import {setFilterRouteEnd} from "/@/router";
+import {LoginType, userLogin, UserLoginReq} from "/@/api/userCenter";
 import {useRequest} from "vue-request";
+import {verifyEmail, verifyPhone} from "/@/utils/toolsValidate";
 
 export default defineComponent({
   name: 'loginAccount',
@@ -59,7 +59,22 @@ export default defineComponent({
       },
       loading: {
         signIn: false,
+      }, rules: {
+        email: [{
+          required: true,
+          message: '请输入邮箱',
+          trigger: [],
+        }, {
+          type: "email",
+          message: '请输入正确的邮箱',
+          trigger: [],
+        }], password: [{
+          required: true,
+          message: '请输入密码',
+          trigger: [],
+        }]
       },
+      formRef: ref<InstanceType<typeof ElForm>>()
     });
 
     // 时间获取
@@ -67,49 +82,55 @@ export default defineComponent({
       return formatAxis(new Date());
     });
     // 登录
-    const onSignIn = async () => {
-      // 模拟数据
-      state.loading.signIn = true;
-      // 用户信息模拟数据
-      const userInfos = {
-        userName: '江哲',
-        photo: 'https://ss0.bdstatic.com/70cFvHSh_Q1YnxGkpoWK1HF6hhy/it/u=1813762643,1914315241&fm=26&gp=0.jpg',
-        time: new Date().getTime(),
-        roles: [],
-        authBtnList: [],
-      };
+    const onSignIn = async (formEl: FormInstance) => {
+      await formEl.validate((valid, fields) => {
+        if (valid) {
+          // 模拟数据
+          state.loading.signIn = true;
+          // 用户信息模拟数据
+          const userInfos = {
+            userName: '江哲',
+            photo: 'https://ss0.bdstatic.com/70cFvHSh_Q1YnxGkpoWK1HF6hhy/it/u=1813762643,1914315241&fm=26&gp=0.jpg',
+            time: new Date().getTime(),
+            roles: [],
+            authBtnList: [],
+          };
 
-      let loginReq: UserLoginReq = {
-        email: state.ruleForm.email as string,
-        password: state.ruleForm.password,
-        loginType: LoginType.emailPassword
-      };
+          let loginReq: UserLoginReq = {
+            email: state.ruleForm.email as string,
+            password: state.ruleForm.password,
+            loginType: LoginType.emailPassword
+          };
 
-      useRequest(userLogin(loginReq), {
-        onSuccess: async (tokenInfo) => {
-          // 存储 token 到浏览器缓存
-          Local.set('token', tokenInfo.data.tokenValue);
-          Local.set('tokenName', tokenInfo.data.tokenName);
-          // 存储用户信息到浏览器缓存
-          Session.set('userInfo', userInfos);
-          // 1、请注意执行顺序(存储用户信息到vuex)
-          store.dispatch('userInfos/setUserInfos', userInfos);
-          if (!store.state.themeConfig.themeConfig.isRequestRoutes) {
-            // 前端控制路由，2、请注意执行顺序
-            await initFrontEndControlRoutes();
-            signInSuccess();
-          } else {
-            // 模拟后端控制路由，isRequestRoutes 为 true，则开启后端控制路由
-            // 添加完动态路由，再进行 router 跳转，否则可能报错 No match found for location with path "/"
-            await initBackEndControlRoutes();
-            // 执行完 initBackEndControlRoutes，再执行 signInSuccess
-            signInSuccess();
-          }
-        }, onError: () => {
-          state.loading.signIn = false;
+          useRequest(userLogin(loginReq), {
+            onSuccess: async (tokenInfo) => {
+              // 存储 token 到浏览器缓存
+              Local.set('token', tokenInfo.data.tokenValue);
+              Local.set('tokenName', tokenInfo.data.tokenName);
+              // 存储用户信息到浏览器缓存
+              Session.set('userInfo', userInfos);
+              // 1、请注意执行顺序(存储用户信息到vuex)
+              store.dispatch('userInfos/setUserInfos', userInfos);
+              if (!store.state.themeConfig.themeConfig.isRequestRoutes) {
+                // 前端控制路由，2、请注意执行顺序
+                await initFrontEndControlRoutes();
+                signInSuccess();
+              } else {
+                // 模拟后端控制路由，isRequestRoutes 为 true，则开启后端控制路由
+                // 添加完动态路由，再进行 router 跳转，否则可能报错 No match found for location with path "/"
+                await initBackEndControlRoutes();
+                // 执行完 initBackEndControlRoutes，再执行 signInSuccess
+                signInSuccess();
+              }
+            }, onError: () => {
+              state.loading.signIn = false;
+            }
+          })
         }
+      }).catch(() => {
       })
     };
+
 
     // 登录成功后的跳转
     const signInSuccess = () => {

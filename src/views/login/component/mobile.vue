@@ -34,16 +34,14 @@
 <script lang="ts">
 import {computed, defineComponent, getCurrentInstance, reactive, ref, toRefs} from 'vue';
 import {useRoute, useRouter} from 'vue-router';
-import {ElMessage, ElForm,} from 'element-plus';
+import {ElMessage, ElForm} from 'element-plus';
 import {useI18n} from 'vue-i18n';
 import {initFrontEndControlRoutes} from '/@/router/frontEnd';
 import {initBackEndControlRoutes} from '/@/router/backEnd';
 import {useStore} from '/@/store/index';
 import {Local, Session} from '/@/utils/storage';
 import {formatAxis} from '/@/utils/formatTime';
-import {getSystemRoute, LoginType, userLogin, UserLoginReq} from "/@/api/userCenter";
-import {dynamicRoutes} from "/@/router/route";
-import {setFilterRouteEnd} from "/@/router";
+import {LoginType, userLogin, UserLoginReq} from "/@/api/userCenter";
 import {useRequest} from "vue-request";
 import {verifyPhone} from "/@/utils/toolsValidate";
 import type {FormInstance} from 'element-plus'
@@ -56,11 +54,19 @@ export default defineComponent({
     const store = useStore();
     const route = useRoute();
     const router = useRouter();
+    let checkPhone = (rule: any, value: string, callback: any) => {
+      let reg = /^1[345789]\d{9}$/
+      if (!reg.test(value)) {
+        callback(new Error('请输入11位手机号'))
+      } else {
+        callback()
+      }
+    }
 
     const state = reactive({
       isShowPassword: false,
       ruleForm: {
-        phone: 'jiangzhe1155',
+        phone: '13699824828',
         password: 'jiang5201314',
       },
       loading: {
@@ -74,7 +80,7 @@ export default defineComponent({
             trigger: [],
           }, {
             type: "number",
-            validator: verifyPhone,
+            validator: checkPhone,
             message: '请输入有效的手机号',
             trigger: [],
           }
@@ -86,6 +92,8 @@ export default defineComponent({
       },
       formRef: ref<InstanceType<typeof ElForm>>()
     });
+
+
     // 时间获取
     const currentTime = computed(() => {
       return formatAxis(new Date());
@@ -136,7 +144,8 @@ export default defineComponent({
             }
           })
         }
-      }).catch(()=>{})
+      }).catch(() => {
+      })
     };
 
     // 登录成功后的跳转
