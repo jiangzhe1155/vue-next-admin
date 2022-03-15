@@ -48,6 +48,16 @@ export const listSystem = (systemListReq: SystemReq) => {
 }
 
 
+export interface SendVerifyCodeReq {
+    notifyWay: string,
+    phone?: string,
+    email?: string
+}
+
+export const sendVerifyCode = (sendVerifyCodeReq: SendVerifyCodeReq) => {
+    return request.post('/api/userCenter/user/sendVerifyCode', sendVerifyCodeReq);
+}
+
 interface MenuDTO {
     id: string,
     type: string,

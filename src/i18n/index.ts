@@ -59,4 +59,5 @@ export const i18n = createI18n({
 	locale: store.state.themeConfig.themeConfig.globalI18n,
 	fallbackLocale: zhcnLocale.name,
 	messages,
+	silentTranslationWarn: true
 });

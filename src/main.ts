@@ -1,10 +1,14 @@
-import { createApp } from 'vue';
+import {createApp} from 'vue';
 import App from './App.vue';
 import router from './router';
-import { store, key } from './store';
-import { directive } from '/@/utils/directive';
-import { i18n } from '/@/i18n/index';
+import {store, key} from './store';
+import {directive} from '/@/utils/directive';
+import {i18n} from '/@/i18n/index';
 import other from '/@/utils/other';
+import 'virtual:windi-base.css'
+import 'virtual:windi-components.css'
+import 'virtual:windi-utilities.css'
+
 
 import ElementPlus from 'element-plus';
 import 'element-plus/dist/index.css';
@@ -19,11 +23,11 @@ directive(app);
 other.elSvg(app);
 
 app.use(router)
-	.use(store, key)
-	.use(ElementPlus, { i18n: i18n.global.t, size: other.globalComponentSize })
-	.use(i18n)
-	.use(screenShort, { enableWebRtc: false })
-	.use(VueGridLayout)
-	.mount('#app');
+    .use(store, key)
+    .use(ElementPlus, {i18n: i18n.global.t, size: other.globalComponentSize})
+    .use(i18n)
+    .use(screenShort, {enableWebRtc: false})
+    .use(VueGridLayout)
+    .mount('#app');
 
 app.config.globalProperties.mittBus = mitt();

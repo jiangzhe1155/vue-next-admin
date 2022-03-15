@@ -2,7 +2,8 @@
   <el-form class="login-content-form" :rules="rules" ref="formRef"
            :model="ruleForm">
     <el-form-item prop="phone">
-      <el-input type="text" :placeholder="$t('message.mobile.placeholder1')" v-model="ruleForm.phone" clearable
+      <el-input size="large" type="text" :placeholder="$t('message.mobile.placeholder1')" v-model="ruleForm.phone"
+                clearable
                 autocomplete="off">
         <template #prefix>
           <i class="iconfont icon-dianhua el-input__icon"></i>
@@ -12,7 +13,7 @@
     <el-form-item prop="code">
       <el-row :gutter="15">
         <el-col :span="16">
-          <el-input type="text" maxlength="6" :placeholder="请输入验证码" v-model="ruleForm.code"
+          <el-input size="large" type="text" maxlength="6" placeholder="请输入验证码" v-model="ruleForm.code"
                     clearable autocomplete="off">
             <template #prefix>
               <el-icon class="el-input__icon">
@@ -22,16 +23,16 @@
           </el-input>
         </el-col>
         <el-col :span="8">
-          <el-button class="login-content-code" @click="getVerifyCode(formRef)">{{ getVerifyCodeText }}</el-button>
+          <el-button class="login-content-code" @click="getVerifyCode(formRef)"><span class="w-22">{{
+              getVerifyCodeText
+            }}</span></el-button>
         </el-col>
       </el-row>
     </el-form-item>
-    <el-form-item>
-      <el-button type="primary" class="login-content-submit" round @click="onSignIn(formRef)"
-                 :loading="loading.signIn">
-        <span>{{ $t('message.mobile.btnText') }}</span>
-      </el-button>
-    </el-form-item>
+    <el-button type="primary" class="login-content-submit" round @click="onSignIn(formRef)"
+               :loading="loading.signIn">
+      <span>{{ $t('message.mobile.btnText') }}</span>
+    </el-button>
   </el-form>
 </template>
 

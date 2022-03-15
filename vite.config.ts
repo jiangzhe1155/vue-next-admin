@@ -2,6 +2,7 @@ import vue from '@vitejs/plugin-vue';
 import {resolve} from 'path';
 import type {UserConfig} from 'vite';
 import {loadEnv} from './src/utils/viteBuild';
+import WindiCSS from 'vite-plugin-windicss'
 
 const pathResolve = (dir: string): any => {
     return resolve(__dirname, '.', dir);
@@ -15,7 +16,7 @@ const alias: Record<string, string> = {
 };
 
 const viteConfig: UserConfig = {
-    plugins: [vue()],
+    plugins: [vue(),WindiCSS()],
     root: process.cwd(),
     resolve: {alias},
     base: process.env.NODE_ENV === 'production' ? VITE_PUBLIC_PATH : './',
@@ -52,5 +53,6 @@ const viteConfig: UserConfig = {
         __INTLIFY_PROD_DEVTOOLS__: JSON.stringify(false),
     },
 };
+
 
 export default viteConfig;

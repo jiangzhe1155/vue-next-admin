@@ -2,7 +2,7 @@
   <el-form class="login-content-form" :rules="rules" ref="formRef"
            :model="ruleForm">
     <el-form-item prop="email">
-      <el-input type="text" placeholder="请输入邮箱" v-model="ruleForm.email"
+      <el-input size="large" type="text" placeholder="请输入邮箱" v-model="ruleForm.email"
                 clearable autocomplete="off">
         <template #prefix>
           <el-icon class="el-input__icon">
@@ -21,11 +21,9 @@
         </template>
       </el-input>
     </el-form-item>
-    <el-form-item>
-      <el-button type="primary" class="login-content-submit" round @click="onSignIn(formRef)" :loading="loading.signIn">
-        <span>{{ $t('message.account.accountBtnText') }}</span>
-      </el-button>
-    </el-form-item>
+    <el-button type="primary" class="login-content-submit" round @click="onSignIn(formRef)" :loading="loading.signIn">
+      <span>{{ $t('message.account.accountBtnText') }}</span>
+    </el-button>
   </el-form>
 </template>
 

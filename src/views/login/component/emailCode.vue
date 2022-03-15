@@ -3,7 +3,7 @@
            :model="ruleForm"
   >
     <el-form-item prop="email">
-      <el-input type="text" placeholder="请输入邮箱" v-model="ruleForm.email"
+      <el-input size="large" type="text" placeholder="请输入邮箱" v-model="ruleForm.email"
                 clearable autocomplete="off">
         <template #prefix>
           <el-icon class="el-input__icon">
@@ -15,7 +15,7 @@
     <el-form-item prop="code">
       <el-row :gutter="15">
         <el-col :span="16">
-          <el-input type="text" maxlength="6" placeholder="请输入验证码" v-model="ruleForm.code" clearable autocomplete="off">
+          <el-input size="large" type="text" maxlength="6" placeholder="请输入验证码" v-model="ruleForm.code" clearable autocomplete="off">
             <template #prefix>
               <el-icon class="el-input__icon">
                 <elementPosition/>
@@ -23,16 +23,15 @@
             </template>
           </el-input>
         </el-col>
-        <el-col :span="8">
-          <el-button class="login-content-code" @click="getVerifyCode">{{ getVerifyCodeText }}</el-button>
+        <el-col :span="8" >
+          <el-button class="login-content-code" @click="getVerifyCode"><span class="w-22">{{ getVerifyCodeText }}</span>
+          </el-button>
         </el-col>
       </el-row>
     </el-form-item>
-    <el-form-item>
       <el-button type="primary" class="login-content-submit" round @click="onSignIn(formRef)"
                  :loading="loading.signIn"><span>{{ $t('message.mobile.btnText') }}</span>
       </el-button>
-    </el-form-item>
   </el-form>
 </template>
 
@@ -40,7 +39,7 @@
 import {toRefs, reactive, defineComponent, computed, getCurrentInstance, ref} from 'vue';
 import {formatAxis} from "/@/utils/formatTime";
 import {ElForm, ElMessage, FormInstance} from "element-plus";
-import {LoginType, userLogin, UserLoginReq} from "/@/api/userCenter";
+import {LoginType, sendVerifyCode, SendVerifyCodeReq, userLogin, UserLoginReq} from "/@/api/userCenter";
 import {useRequest} from "vue-request";
 import {Local, Session} from "/@/utils/storage";
 import {initFrontEndControlRoutes} from "/@/router/frontEnd";
@@ -92,18 +91,31 @@ export default defineComponent({
     });
 
     const getVerifyCode = () => {
-      state.isVerifyCodeButtonInActive = false;
-      state.disableVerifyCodeTimeout = TIME_COUNT;
-      // 启动计时器
-      state.timer = setInterval(() => {
-        if (state.disableVerifyCodeTimeout > 0 && state.disableVerifyCodeTimeout <= TIME_COUNT) {
-          state.disableVerifyCodeTimeout--;
-        } else {
-          state.isVerifyCodeButtonInActive = true;
-          clearInterval(state.timer);
-          state.timer = null;
+      if (state.isVerifyCodeButtonInActive) {
+
+        let sendVerifyCodeReq: SendVerifyCodeReq = {
+          email: state.ruleForm.email,
+          notifyWay: 'email',
         }
-      }, 1000);
+
+        // 发送验证码
+        useRequest(sendVerifyCode(sendVerifyCodeReq), {
+          onSuccess: () => {
+            state.isVerifyCodeButtonInActive = false;
+            state.disableVerifyCodeTimeout = TIME_COUNT;
+            // 启动计时器
+            state.timer = setInterval(() => {
+              if (state.disableVerifyCodeTimeout > 0 && state.disableVerifyCodeTimeout <= TIME_COUNT) {
+                state.disableVerifyCodeTimeout--;
+              } else {
+                state.isVerifyCodeButtonInActive = true;
+                clearInterval(state.timer);
+                state.timer = null;
+              }
+            }, 1000);
+          }
+        })
+      }
     };
 
     // 时间获取

@@ -5,7 +5,7 @@
     </div>
     <div class="login-content" :class="{ 'login-content-mobile': tabsActiveName === 'mobile' }">
       <div class="login-content-main">
-        <h4 class="login-content-title">{{ getThemeConfig.globalTitle }}后台模板</h4>
+        <h4 class="login-content-title">{{ getThemeConfig.globalTitle }}</h4>
         <div></div>
         <el-divider>{{ getLoginWayText }}</el-divider>
         <el-tabs v-model="tabsActiveName" class="demo-tabs">
@@ -26,19 +26,15 @@
               <MobileCode/>
             </transition>
           </el-tab-pane>
-
           <el-tab-pane label="邮箱" :name="LoginType.emailCode" v-if="selectedLoginWay === LoginWay.verifyCode">
             <transition name="el-zoom-in-center">
               <EmailCode/>
             </transition>
           </el-tab-pane>
-
         </el-tabs>
-        <el-button type="text" @click="onSwitchVerify">{{ getLoginWayTextReverse }}</el-button>
-        <div class="mt10">
-          <el-button type="text" size="small">{{ $t('message.link.one3') }}</el-button>
-          <el-button type="text" size="small">{{ $t('message.link.two4') }}</el-button>
-        </div>
+        <el-button type="text" @click="onSwitchVerify"><span>{{ getLoginWayTextReverse }}</span>
+        </el-button>
+        <el-divider>其他登录方式</el-divider>
 
         <!--        <div v-if="!isScan">-->
         <!--        </div>-->
