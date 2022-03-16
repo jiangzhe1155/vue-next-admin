@@ -15,11 +15,6 @@ const state = reactive({
     component: ''
   },
   isShowDialog: false,
-  icon: null as any
-})
-
-initIconfont.ele().then((data) => {
-  state.icon = data;
 })
 
 const openDialog = () => {
@@ -74,7 +69,6 @@ defineExpose({
             </el-form-item>
           </el-col>
           <SvgIcon name="elementZoomOut"/>
-          {{ state }}
           <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24" class="mb20">
             <el-form-item label="菜单类型">
               <el-radio-group v-model="state.ruleForm.menuType">
