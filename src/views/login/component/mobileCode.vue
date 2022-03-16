@@ -23,7 +23,7 @@
           </el-input>
         </el-col>
         <el-col :span="8">
-          <el-button class="login-content-code" @click="getVerifyCode(formRef)"><span class="w-22">{{
+          <el-button size="large" class="login-content-code" @click="getVerifyCode(formRef)"><span class="w-20">{{
               getVerifyCodeText
             }}</span></el-button>
         </el-col>
@@ -40,12 +40,11 @@
 import {toRefs, reactive, defineComponent, computed, ref, getCurrentInstance} from 'vue';
 import {formatAxis} from "/@/utils/formatTime";
 import {ElForm, ElMessage, FormInstance} from "element-plus";
-import {LoginType, userLogin, UserLoginReq} from "/@/api/userCenter";
+import {LoginType, sendVerifyCode, SendVerifyCodeReq, userLogin, UserLoginReq} from "/@/api/userCenter";
 import {useRequest} from "vue-request";
 import {Local, Session} from "/@/utils/storage";
 import {initFrontEndControlRoutes} from "/@/router/frontEnd";
 import {initBackEndControlRoutes} from "/@/router/backEnd";
-import {verifyPhone} from "/@/utils/toolsValidate";
 import {useI18n} from "vue-i18n";
 import {useStore} from "/@/store";
 import {useRoute, useRouter} from "vue-router";
@@ -186,19 +185,32 @@ export default defineComponent({
     };
 
     const getVerifyCode = () => {
-      // 校验是否是合法的手机号 或者邮箱号
-      state.isVerifyCodeButtonInActive = false;
-      state.disableVerifyCodeTimeout = TIME_COUNT;
-      // 启动计时器
-      state.timer = setInterval(() => {
-        if (state.disableVerifyCodeTimeout > 0 && state.disableVerifyCodeTimeout <= TIME_COUNT) {
-          state.disableVerifyCodeTimeout--;
-        } else {
-          state.isVerifyCodeButtonInActive = true;
-          clearInterval(state.timer);
-          state.timer = null;
+
+      if (state.isVerifyCodeButtonInActive) {
+
+        let sendVerifyCodeReq: SendVerifyCodeReq = {
+          phone: state.ruleForm.phone,
+          notifyWay: 'phone',
         }
-      }, 1000);
+
+        // 发送验证码
+        useRequest(sendVerifyCode(sendVerifyCodeReq), {
+          onSuccess: () => {
+            state.isVerifyCodeButtonInActive = false;
+            state.disableVerifyCodeTimeout = TIME_COUNT;
+            // 启动计时器
+            state.timer = setInterval(() => {
+              if (state.disableVerifyCodeTimeout > 0 && state.disableVerifyCodeTimeout <= TIME_COUNT) {
+                state.disableVerifyCodeTimeout--;
+              } else {
+                state.isVerifyCodeButtonInActive = true;
+                clearInterval(state.timer);
+                state.timer = null;
+              }
+            }, 1000);
+          }
+        })
+      }
     };
 
     const getVerifyCodeText = computed(() => {

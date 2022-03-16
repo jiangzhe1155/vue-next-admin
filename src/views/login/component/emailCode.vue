@@ -24,7 +24,7 @@
           </el-input>
         </el-col>
         <el-col :span="8" >
-          <el-button class="login-content-code" @click="getVerifyCode"><span class="w-22">{{ getVerifyCodeText }}</span>
+          <el-button size="large" class="login-content-code" @click="getVerifyCode"><span class="w-20">{{ getVerifyCodeText }}</span>
           </el-button>
         </el-col>
       </el-row>

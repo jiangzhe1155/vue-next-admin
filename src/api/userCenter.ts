@@ -43,8 +43,8 @@ export const pageSystem = (systemPageReq: SystemReq) => {
     return request.post('/api/userCenter/system/page', systemPageReq);
 }
 
-export const listSystem = (systemListReq: SystemReq) => {
-    return request.post('/api/userCenter/system/list', systemListReq);
+export const listSystem = () => {
+    return request.post('/api/userCenter/system/list', {});
 }
 
 

@@ -49,11 +49,13 @@ service.interceptors.response.use(
             }
             return Promise.reject(response);
         } else {
-            ElMessage({
-                showClose: true,
-                message: res.message,
-                type: 'success',
-            });
+            if (res.code != "200") {
+                ElMessage({
+                    showClose: true,
+                    message: res.message,
+                    type: 'success',
+                });
+            }
             return response.data;
         }
     },
