@@ -47,7 +47,6 @@ export const listSystem = () => {
     return request.post('/api/userCenter/system/list', {});
 }
 
-
 export interface SendVerifyCodeReq {
     notifyWay: string,
     phone?: string,
@@ -61,10 +60,16 @@ export const sendVerifyCode = (sendVerifyCodeReq: SendVerifyCodeReq) => {
 interface MenuDTO {
     id: string,
     type: string,
+    typeName: string,
     name: string,
     pId: string,
     icon: string,
     children: MenuDTO[]
+}
+
+export enum MenuType {
+    menu = 'menu',
+    menuGroup = 'menuGroup'
 }
 
 export interface SystemMenuDTO {
@@ -79,6 +84,12 @@ export const getAllSystemRoute = () => {
 export const getSystemRoute = function (params: any) {
     return request.post('/api/userCenter/menu/getSystemRoute', params);
 }
+
+
+export const getSystemMenu = function (params: any) {
+    return request.post('/api/userCenter/menu/getSystemMenu', params);
+}
+
 
 export const userLogin = (userLoginReq: UserLoginReq) => {
     return request.post('/api/userCenter/user/login', userLoginReq);

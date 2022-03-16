@@ -111,7 +111,7 @@ export default {
 		const selectorScrollbarRef = ref();
 		const state: any = reactive({
 			fontIconPrefix: '',
-			fontIconVisible: false,
+			fontIconVisible: true,
 			fontIconWidth: 0,
 			fontIconSearch: '',
 			fontIconTabsIndex: 0,
@@ -122,6 +122,7 @@ export default {
 		});
 		// 处理 input 获取焦点时，modelValue 有值时，改变 input 的 placeholder 值
 		const onIconFocus = () => {
+      // console.log(props.modelValue)
 			if (!props.modelValue) return false;
 			state.fontIconSearch = '';
 			state.fontIconPlaceholder = props.modelValue;
