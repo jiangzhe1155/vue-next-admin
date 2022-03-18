@@ -69,6 +69,7 @@ export interface MenuDTO {
     name: string,
     pId: string,
     icon: string,
+    level: number,
     children: MenuDTO[]
 }
 

@@ -18,7 +18,7 @@
 				>
 					<i class="iconfont icon-webicon318 layout-navbars-tagsview-ul-li-iconfont font14" v-if="isActive(v)"></i>
 					<SvgIcon :name="v.meta.icon" class="layout-navbars-tagsview-ul-li-iconfont" v-if="!isActive(v) && getThemeConfig.isTagsviewIcon" />
-					<span>{{ $t(v.meta.title) }}</span>
+					<span>{{ v.meta.title }}</span>
 					<template v-if="isActive(v)">
 						<SvgIcon name="elementRefreshRight" class="ml5" @click.stop="refreshCurrentTagsView($route.fullPath)" />
 						<SvgIcon

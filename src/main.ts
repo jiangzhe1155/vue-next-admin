@@ -16,6 +16,7 @@ import '/@/theme/index.scss';
 import mitt from 'mitt';
 import screenShort from 'vue-web-screen-shot';
 import VueGridLayout from 'vue-grid-layout';
+import {setGlobalOptions} from 'vue-request';
 
 const app = createApp(App);
 
@@ -31,3 +32,9 @@ app.use(router)
     .mount('#app');
 
 app.config.globalProperties.mittBus = mitt();
+
+
+setGlobalOptions({
+    debounceInterval: 300
+});
+
