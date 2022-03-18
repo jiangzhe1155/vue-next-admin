@@ -186,7 +186,7 @@ export default {
 		const getMenuData = (routes) => {
 			const arr = [];
 			routes.map((val) => {
-				val['title'] = i18n.global.t(val.meta.title);
+				val['title'] = val.meta.title;
 				val['id'] = Math.random();
 				arr.push({ ...val });
 				if (val.children) getMenuData(val.children);

@@ -5,10 +5,11 @@ import {addSystemMenu, MenuDTO, MenuType} from "/@/api/userCenter";
 import {defineProps, defineEmits} from 'vue'
 import {useRequest} from "vue-request";
 import IconSelector from "/@/components/iconSelector/index.vue";
-import {ElForm} from "element-plus";
+import {ElForm, FormInstance} from "element-plus";
 
-const props = defineProps(['menus'])
+const props = defineProps(['menus', 'systemId'])
 const emit = defineEmits(['refreshTableData'])
+const formRef = ref<FormInstance>();
 
 const state = reactive({
   ruleForm: {
@@ -19,18 +20,12 @@ const state = reactive({
     code: '',
     component: ''
   }, rules: {
-    code: [{
-      required: true,
-      message: '编码不能为空',
-      trigger: [],
-    }],
     name: [{
       required: true,
       message: '名称不能为空',
       trigger: [],
     }]
   },
-  formRef: ref<InstanceType<typeof ElForm>>(),
   isShowDialog: false,
   props: {
     expandTrigger: 'hover',
@@ -38,7 +33,8 @@ const state = reactive({
     label: 'name',
     emitPath: false
   },
-  menus: []
+  menus: [],
+  isParentMenuSelectDisable: false
 })
 
 const openDialog = () => {
@@ -64,9 +60,13 @@ const {run: addSystemMenuRun, loading: addSystemMenuLoading} = useRequest(addSys
 });
 
 // 新增
-const onSubmit = () => {
-  state.formRef.validate((valid, fields) => {
+const onSubmit = async (formEl: FormInstance | undefined) => {
+  await formEl.validate((valid, fields) => {
     if (valid) {
+      state.ruleForm.systemId = props.systemId;
+      if (state.ruleForm.type === MenuType.menuGroup) {
+        state.ruleForm.component = '';
+      }
       addSystemMenuRun(state.ruleForm);
     }
   });
@@ -93,14 +93,16 @@ const getMenus = computed(() => {
 
 defineExpose({
   openDialog,
-  closeDialog
+  closeDialog,
+  state
 });
 
 </script>
 <template>
   <div class="system-add-menu-container">
     <el-dialog title="新增菜单" v-model="state.isShowDialog" width="500px" destroy-on-close>
-      <el-form :model="state.ruleForm" label-width="80px" :rules="state.rules" :ref="state.formRef">
+      {{ state }}
+      <el-form :model="state.ruleForm" label-width="80px" :rules="state.rules" ref="formRef">
         <el-row :gutter="35">
           <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24" class="mb20">
             <el-form-item label="上级菜单">
@@ -108,15 +110,24 @@ defineExpose({
                   clearable
                   v-model="state.ruleForm.pid"
                   :options="getMenus"
-                  :props="state.props">
+                  :props="state.props"
+                  :disabled="state.isParentMenuSelectDisable"
+              >
               </el-cascader>
             </el-form-item>
           </el-col>
           <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24" class="mb20">
-            <el-form-item label="菜单名称" required prop="name">
+            <el-form-item label="菜单名称" prop="name">
               <el-input v-model="state.ruleForm.name" clearable></el-input>
             </el-form-item>
           </el-col>
+
+          <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24" class="mb20">
+            <el-form-item label="菜单编号" prop="code">
+              <el-input v-model="state.ruleForm.code" placeholder="code" clearable></el-input>
+            </el-form-item>
+          </el-col>
+
           <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24" class="mb20">
             <el-form-item label="菜单类型">
               <el-radio-group v-model="state.ruleForm.type">
@@ -126,28 +137,25 @@ defineExpose({
             </el-form-item>
           </el-col>
 
-          <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24" class="mb20">
-            <el-form-item label="菜单编号" required prop="code">
-              <el-input v-model="state.ruleForm.code" placeholder="code" clearable></el-input>
-            </el-form-item>
-          </el-col>
-
-          <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24" class="mb20">
-            <el-form-item label="菜单图标">
-              <IconSelector placeholder="请输入菜单图标" v-model="state.ruleForm.icon" type="all"/>
-            </el-form-item>
-          </el-col>
-          <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24" class="mb20">
+          <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24" class="mb20"
+                  v-show="state.ruleForm.type===MenuType.menu">
             <el-form-item label="组件路径">
               <el-input v-model="state.ruleForm.component" placeholder="组件路径" clearable></el-input>
             </el-form-item>
           </el-col>
         </el-row>
+
+        <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24" class="mb20">
+          <el-form-item label="菜单图标">
+            <IconSelector placeholder="请输入菜单图标" v-model="state.ruleForm.icon" type="all"/>
+          </el-form-item>
+        </el-col>
       </el-form>
       <template #footer>
 				<span class="dialog-footer">
 					<el-button @click="onCancel" size="small">取 消</el-button>
-					<el-button type="primary" @click="onSubmit" size="small" :loading="addSystemMenuLoading">新 增</el-button>
+					<el-button type="primary" @click="onSubmit(formRef)" size="small"
+                     :loading="addSystemMenuLoading">新 增</el-button>
 				</span>
       </template>
     </el-dialog>
