@@ -1,15 +1,18 @@
 <script setup lang="ts">
 
-import {computed, onMounted, reactive} from "vue";
+import {computed, onMounted, reactive, ref} from "vue";
 import {addSystemMenu, MenuDTO, MenuType, updateSystemMenu} from "/@/api/userCenter";
 import {defineProps, defineEmits} from 'vue'
 import {useRequest} from "vue-request";
 import {initBackEndControlRoutes, setBackEndControlRefreshRoutes} from "/@/router/backEnd";
 import IconSelector from "/@/components/iconSelector/index.vue";
+import {FormInstance} from "element-plus";
 
 const props = defineProps(['menus']);
 
 const emit = defineEmits(['refreshTableData'])
+
+const formRef = ref<FormInstance>();
 
 const state = reactive({
   ruleForm: {
@@ -20,6 +23,12 @@ const state = reactive({
     icon: '',
     code: '',
     component: ''
+  }, rules: {
+    name: [{
+      required: true,
+      message: '名称不能为空',
+      trigger: [],
+    }]
   },
   isShowDialog: false,
   props: {
@@ -28,7 +37,8 @@ const state = reactive({
     label: 'name',
     emitPath: false
   },
-  menus: []
+  menus: [],
+  isMenuTypeDisable: false
 })
 
 const openDialog = () => {
@@ -44,7 +54,7 @@ const onCancel = () => {
 };
 
 // workbench/quanxian/index
-const {run: updateSystemMenuRun, loading:updateSystemMenuLoading} = useRequest(updateSystemMenu, {
+const {run: updateSystemMenuRun, loading: updateSystemMenuLoading} = useRequest(updateSystemMenu, {
   manual: true,
   onSuccess: () => {
     closeDialog(); // 关闭弹窗
@@ -54,9 +64,17 @@ const {run: updateSystemMenuRun, loading:updateSystemMenuLoading} = useRequest(u
 });
 
 
-const onSubmit = () => {
-  updateSystemMenuRun(state.ruleForm);
+const onSubmit = async (formEl: FormInstance | undefined) => {
+  await formEl?.validate((valid, fields) => {
+    if (valid) {
+      if (state.ruleForm.type === MenuType.menuGroup) {
+        state.ruleForm.component = '';
+      }
+      updateSystemMenuRun(state.ruleForm);
+    }
+  });
 };
+
 
 function dfs(menus) {
   const res: any = [];
@@ -88,7 +106,7 @@ defineExpose({
 <template>
   <div class="system-edit-menu-container">
     <el-dialog title="编辑菜单" v-model="state.isShowDialog" width="500px" destroy-on-close>
-      <el-form :model="state.ruleForm" label-width="80px">
+      <el-form :model="state.ruleForm" label-width="80px" :rules="state.rules" ref="formRef">
         <el-row :gutter="35">
           <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24" class="mb20">
             <el-form-item label="上级菜单">
@@ -101,22 +119,30 @@ defineExpose({
             </el-form-item>
           </el-col>
           <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24" class="mb20">
-            <el-form-item label="菜单名称" required>
+            <el-form-item label="菜单名称" prop="name">
               <el-input v-model="state.ruleForm.name" clearable></el-input>
             </el-form-item>
           </el-col>
+
+          <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24" class="mb20">
+            <el-form-item label="菜单编号" prop="code">
+              <el-input v-model="state.ruleForm.code" placeholder="code" clearable></el-input>
+            </el-form-item>
+          </el-col>
+
           <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24" class="mb20">
             <el-form-item label="菜单类型">
-              <el-radio-group v-model="state.ruleForm.type">
+              <el-radio-group v-model="state.ruleForm.type" :disabled="state.isMenuTypeDisable">
                 <el-radio label="menu">菜单</el-radio>
                 <el-radio label="menuGroup">菜单组</el-radio>
               </el-radio-group>
             </el-form-item>
           </el-col>
 
-          <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24" class="mb20">
-            <el-form-item label="菜单编号" required>
-              <el-input v-model="state.ruleForm.code" placeholder="code" clearable></el-input>
+          <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24" class="mb20"
+                  v-show="state.ruleForm.type===MenuType.menu">
+            <el-form-item label="组件路径">
+              <el-input v-model="state.ruleForm.component" placeholder="组件路径" clearable></el-input>
             </el-form-item>
           </el-col>
 
@@ -125,17 +151,14 @@ defineExpose({
               <IconSelector placeholder="请输入菜单图标" v-model="state.ruleForm.icon" type="all"/>
             </el-form-item>
           </el-col>
-          <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24" class="mb20">
-            <el-form-item label="组件路径">
-              <el-input v-model="state.ruleForm.component" placeholder="组件路径" clearable></el-input>
-            </el-form-item>
-          </el-col>
+
         </el-row>
       </el-form>
       <template #footer>
 				<span class="dialog-footer">
 					<el-button @click="onCancel" size="small">取 消</el-button>
-					<el-button type="primary" @click="onSubmit" size="small" :loading="updateSystemMenuLoading">保 存</el-button>
+					<el-button type="primary" @click="onSubmit(formRef)" size="small"
+                     :loading="updateSystemMenuLoading">保 存</el-button>
 				</span>
       </template>
     </el-dialog>
