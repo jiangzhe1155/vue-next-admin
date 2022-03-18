@@ -158,7 +158,7 @@ export default {
     // 获取 input 的宽度
     const getInputWidth = () => {
       nextTick(() => {
-        if (inputWidthRef.value.$el) {
+        if (inputWidthRef.value) {
           state.fontIconWidth = inputWidthRef.value.$el.offsetWidth;
         }
       });

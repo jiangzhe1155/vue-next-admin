@@ -16,7 +16,7 @@ export default {
 			default: () => 'wangeditor',
 		},
 		// 是否禁用
-		isDisable: {
+		isMenuTypeDisable: {
 			type: Boolean,
 			default: () => false,
 		},
@@ -39,7 +39,7 @@ export default {
 			onWangeditorChange();
 			state.editor.create();
 			state.editor.txt.html(props.modelValue);
-			props.isDisable ? state.editor.disable() : state.editor.enable();
+			props.isMenuTypeDisable ? state.editor.disable() : state.editor.enable();
 		};
 		// 内容改变时
 		const onWangeditorChange = () => {

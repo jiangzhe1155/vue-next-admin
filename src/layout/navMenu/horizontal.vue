@@ -6,7 +6,7 @@
 					<el-sub-menu :index="val.path" v-if="val.children && val.children.length > 0" :key="val.path">
 						<template #title>
 							<SvgIcon :name="val.meta.icon" />
-							<span>{{ $t(val.meta.title) }}</span>
+							<span>{{ val.meta.title }}</span>
 						</template>
 						<SubItem :chil="val.children" />
 					</el-sub-menu>
