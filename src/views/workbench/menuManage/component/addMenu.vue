@@ -1,20 +1,44 @@
 <script setup lang="ts">
 
-import {reactive} from "vue";
-import {MenuType} from "/@/api/userCenter";
-import initIconfont from "/@/utils/getStyleSheets";
-import SvgIcon from "/@/components/svgIcon/index.vue";
+import {computed, onMounted, reactive, ref} from "vue";
+import {addSystemMenu, MenuDTO, MenuType} from "/@/api/userCenter";
+import {defineProps, defineEmits} from 'vue'
+import {useRequest} from "vue-request";
+import IconSelector from "/@/components/iconSelector/index.vue";
+import {ElForm} from "element-plus";
 
+const props = defineProps(['menus'])
+const emit = defineEmits(['refreshTableData'])
 
 const state = reactive({
   ruleForm: {
-    pId: '',
+    pid: '',
     name: '',
     type: MenuType.menu,
     icon: '',
+    code: '',
     component: ''
+  }, rules: {
+    code: [{
+      required: true,
+      message: '编码不能为空',
+      trigger: [],
+    }],
+    name: [{
+      required: true,
+      message: '名称不能为空',
+      trigger: [],
+    }]
   },
+  formRef: ref<InstanceType<typeof ElForm>>(),
   isShowDialog: false,
+  props: {
+    expandTrigger: 'hover',
+    value: 'id',
+    label: 'name',
+    emitPath: false
+  },
+  menus: []
 })
 
 const openDialog = () => {
@@ -28,11 +52,44 @@ const closeDialog = () => {
 const onCancel = () => {
   closeDialog();
 };
+
+// workbench/quanxian/index
+const {run: addSystemMenuRun, loading: addSystemMenuLoading} = useRequest(addSystemMenu, {
+  manual: true,
+  onSuccess: () => {
+    closeDialog(); // 关闭弹窗
+    // 通知父组件动态刷新
+    emit('refreshTableData');
+  }
+});
+
 // 新增
 const onSubmit = () => {
-  closeDialog(); // 关闭弹窗
-  // setBackEndControlRefreshRoutes() // 刷新菜单，未进行后端接口测试
+  state.formRef.validate((valid, fields) => {
+    if (valid) {
+      addSystemMenuRun(state.ruleForm);
+    }
+  });
 };
+
+function dfs(menus) {
+  const res: any = [];
+  menus.forEach((m: any) => {
+        const item = {...m};
+        if (item.type == MenuType.menuGroup) {
+          if (item.children) {
+            item.children = dfs(item.children);
+          }
+          res.push(item);
+        }
+      }
+  );
+  return res;
+}
+
+const getMenus = computed(() => {
+  return dfs(props.menus);
+})
 
 defineExpose({
   openDialog,
@@ -40,55 +97,47 @@ defineExpose({
 });
 
 </script>
-
 <template>
   <div class="system-add-menu-container">
-    <el-dialog title="新增菜单" v-model="state.isShowDialog" width="769px">
-      <el-form :model="state.ruleForm" size="small" label-width="80px">
+    <el-dialog title="新增菜单" v-model="state.isShowDialog" width="500px" destroy-on-close>
+      <el-form :model="state.ruleForm" label-width="80px" :rules="state.rules" :ref="state.formRef">
         <el-row :gutter="35">
           <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24" class="mb20">
-            <!--            <el-form-item label="上级菜单">-->
-            <!--              <el-cascader-->
-            <!--                  :options="menuData"-->
-            <!--                  :props="{ checkStrictly: true, value: 'path', label: 'title' }"-->
-            <!--                  placeholder="请选择上级菜单"-->
-            <!--                  clearable-->
-            <!--                  class="w100"-->
-            <!--                  v-model="ruleForm.menuSuperior"-->
-            <!--              >-->
-            <!--                <template #default="{ node, data }">-->
-            <!--                  <span>{{ data.title }}</span>-->
-            <!--                  <span v-if="!node.isLeaf"> ({{ data.children.length }}) </span>-->
-            <!--                </template>-->
-            <!--              </el-cascader>-->
-            <!--            </el-form-item>-->
+            <el-form-item label="上级菜单">
+              <el-cascader
+                  clearable
+                  v-model="state.ruleForm.pid"
+                  :options="getMenus"
+                  :props="state.props">
+              </el-cascader>
+            </el-form-item>
           </el-col>
-          <el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12" class="mb20">
-            <el-form-item label="菜单名称">
+          <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24" class="mb20">
+            <el-form-item label="菜单名称" required prop="name">
               <el-input v-model="state.ruleForm.name" clearable></el-input>
             </el-form-item>
           </el-col>
-          <SvgIcon name="elementZoomOut"/>
           <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24" class="mb20">
             <el-form-item label="菜单类型">
-              <el-radio-group v-model="state.ruleForm.menuType">
+              <el-radio-group v-model="state.ruleForm.type">
                 <el-radio label="menu">菜单</el-radio>
                 <el-radio label="menuGroup">菜单组</el-radio>
               </el-radio-group>
             </el-form-item>
           </el-col>
 
-          <el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12" class="mb20">
-            <el-form-item label="路由路径">
-              <el-input v-model="state.ruleForm.path" placeholder="路由中的 path 值" clearable></el-input>
+          <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24" class="mb20">
+            <el-form-item label="菜单编号" required prop="code">
+              <el-input v-model="state.ruleForm.code" placeholder="code" clearable></el-input>
             </el-form-item>
           </el-col>
+
           <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24" class="mb20">
             <el-form-item label="菜单图标">
               <IconSelector placeholder="请输入菜单图标" v-model="state.ruleForm.icon" type="all"/>
             </el-form-item>
           </el-col>
-          <el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12" class="mb20">
+          <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24" class="mb20">
             <el-form-item label="组件路径">
               <el-input v-model="state.ruleForm.component" placeholder="组件路径" clearable></el-input>
             </el-form-item>
@@ -98,7 +147,7 @@ defineExpose({
       <template #footer>
 				<span class="dialog-footer">
 					<el-button @click="onCancel" size="small">取 消</el-button>
-					<el-button type="primary" @click="onSubmit" size="small">新 增</el-button>
+					<el-button type="primary" @click="onSubmit" size="small" :loading="addSystemMenuLoading">新 增</el-button>
 				</span>
       </template>
     </el-dialog>
@@ -106,10 +155,9 @@ defineExpose({
 </template>
 
 <script lang="ts">
-import IconSelector from "/@/components/iconSelector/index.vue";
 
 export default {
-  name: 'systemAddMenu',
-  components: {IconSelector},
+  name: 'systemAddMenu'
+
 }
 </script>

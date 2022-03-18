@@ -1,5 +1,5 @@
 <template>
-  <div class="icon-selector">
+  <div class="icon-selector w-100vh">
     <el-popover placement="bottom" :width="fontIconWidth" v-model:visible="fontIconVisible"
                 popper-class="icon-selector-popper">
       <template #reference>
@@ -82,7 +82,7 @@ export default {
     // 输入框占位文本
     size: {
       type: String,
-      default: () => 'small',
+      default: () => 'default',
     },
     // 弹窗标题
     title: {
@@ -137,7 +137,6 @@ export default {
     // 处理 input 失去焦点时，为空将清空 input 值，为点击选中图标时，将取原先值
     const onIconBlur = () => {
       setTimeout(() => {
-        state.fontIconVisible = false;
         const icon = state.fontIconSheetsList.filter((icon: string) => icon === state.fontIconSearch);
         if (icon.length <= 0) state.fontIconSearch = '';
       }, 300);
@@ -159,7 +158,9 @@ export default {
     // 获取 input 的宽度
     const getInputWidth = () => {
       nextTick(() => {
-        state.fontIconWidth = inputWidthRef.value.$el.offsetWidth;
+        if (inputWidthRef.value.$el) {
+          state.fontIconWidth = inputWidthRef.value.$el.offsetWidth;
+        }
       });
     };
     // 监听页面宽度改变

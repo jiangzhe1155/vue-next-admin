@@ -5,6 +5,7 @@ import {setAddRoute, setFilterMenuAndCacheTagsViewRoutes} from '/@/router/index'
 import {dynamicRoutes} from '/@/router/route';
 import {getSystemRoute, listSystem, SystemDTO} from "/@/api/userCenter";
 
+
 const layoutModules: any = import.meta.glob('../layout/routerView/*.{vue,tsx}');
 const viewsModules: any = import.meta.glob('../views/**/*.{vue,tsx}');
 /**
@@ -48,9 +49,10 @@ export async function initBackEndControlRoutes() {
     await store.dispatch('userInfos/setUserInfos');
     let systemId = Session.get('systemId');
     if (!systemId) {
-        let systemListData = await listSystem({});
+        let systemListData = await listSystem();
         let systems: SystemDTO[] = systemListData.data;
         systemId = systems[0].id;
+        Session.set('systemId', systemId);
     }
 
     // 获取路由菜单数据
@@ -83,7 +85,10 @@ export function getBackEndControlRoutes(systemId: string) {
  * @description 路径：/src/views/system/menu/component/addMenu.vue
  */
 export function setBackEndControlRefreshRoutes() {
-    getBackEndControlRoutes('').then(() => {
+    let systemId = Session.get("systemId");
+    systemId = systemId ? systemId : '';
+    console.log("重新刷新systemId 菜单 " + systemId)
+    getBackEndControlRoutes(systemId).then(() => {
     });
 }
 

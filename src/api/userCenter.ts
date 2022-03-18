@@ -47,6 +47,11 @@ export const listSystem = () => {
     return request.post('/api/userCenter/system/list', {});
 }
 
+
+export const deleteSystem = (systemDeleteReq: object) => {
+    return request.post('/api/userCenter/menu/delete', systemDeleteReq);
+}
+
 export interface SendVerifyCodeReq {
     notifyWay: string,
     phone?: string,
@@ -57,7 +62,7 @@ export const sendVerifyCode = (sendVerifyCodeReq: SendVerifyCodeReq) => {
     return request.post('/api/userCenter/user/sendVerifyCode', sendVerifyCodeReq);
 }
 
-interface MenuDTO {
+export interface MenuDTO {
     id: string,
     type: string,
     typeName: string,
@@ -98,5 +103,14 @@ export const userLogin = (userLoginReq: UserLoginReq) => {
 export const userLogout = () => {
     return request.post('/api/userCenter/user/logout', {});
 }
+
+export const addSystemMenu = function (menuAddReq: object) {
+    return request.post('/api/userCenter/menu/add', menuAddReq);
+}
+
+export const updateSystemMenu = function (menuUpdateReq: object) {
+    return request.post('/api/userCenter/menu/update', menuUpdateReq);
+}
+
 
 

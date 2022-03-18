@@ -92,7 +92,6 @@ export default {
     const setFilterRoutes = () => {
       if (store.state.themeConfig.themeConfig.layout === 'columns') return false;
       state.menuList = filterRoutesFun(store.state.routesList.routesList);
-      console.log(state.menuList)
     };
     // 路由过滤递归函数
     const filterRoutesFun = (arr: Array<object>) => {
@@ -126,12 +125,16 @@ export default {
     watch(store.state, (val) => {
       let {layout, isClassicSplitMenu} = val.themeConfig.themeConfig;
       if (layout === 'classic' && isClassicSplitMenu) return false;
-      // setFilterRoutes();
+      setFilterRoutes();
     });
     // 页面加载前
     onBeforeMount(() => {
       initMenuFixed(document.body.clientWidth);
       setFilterRoutes();
+
+      // 设置当前的系统id
+      let path = router.currentRoute.value.path.split('/');
+      Session.set('systemId', path[1]);
       // 此界面不需要取消监听(proxy.mittBus.off('setSendColumnsChildren))
       // 因为切换布局时有的监听需要使用，取消了监听，某些操作将不生效
       proxy.mittBus.on('setSendColumnsChildren', (res: any) => {
