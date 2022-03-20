@@ -1,7 +1,8 @@
 <script setup lang="ts">
 // 获取菜单列表
 import {
-  deleteSystem,
+  batchDeleteSystemMenu, copySystemMenu,
+  deleteSystemMenu,
   getSystemMenu,
   listSystem,
   MenuDTO,
@@ -35,7 +36,8 @@ const state = reactive({
   menuArrayData: [] as MenuDTO[],
   actionType: ActionType.insertIn,
   relationIndex: null,
-  tableKey: Math.random()
+  tableKey: Math.random(),
+  deleteIds: [] as string[]
 })
 
 const addMenuRef = ref();
@@ -48,9 +50,24 @@ const {loading: listSystemLoading} = useRequest(listSystem, {
   }
 });
 
-const {loading: deleteSystemLoading, run: deleteSystemRun} = useRequest(deleteSystem, {
+const {loading: deleteSystemMenuLoading, run: deleteSystemMenuRun} = useRequest(deleteSystemMenu, {
   manual: true,
   onSuccess: (data) => {
+    refreshTableData();
+  }
+});
+
+const {loading: copySystemMenuLoading, run: copySystemMenuRun} = useRequest(copySystemMenu, {
+  manual: true,
+  onSuccess: (data) => {
+    refreshTableData();
+  }
+});
+
+const {loading: batchDeleteSystemMenuLoading, run: batchDeleteSystemMenuRun} = useRequest(batchDeleteSystemMenu, {
+  manual: true,
+  onSuccess: (data) => {
+    state.deleteIds = []
     refreshTableData();
   }
 });
@@ -63,13 +80,22 @@ const {loading: moveSystemMenuLoading, run: moveSystemMenuRun} = useRequest(move
   }
 })
 
+const handleSelectionChange = (value: MenuDTO[]) => {
+  state.deleteIds = value.map(v => {
+    return v.id;
+  });
+}
+
+const onTableRowbatchDel = (value: MenuDTO[]) => {
+  batchDeleteSystemMenuRun({ids: state.deleteIds});
+}
+
 const {
   loading: getSystemMenuLoading,
   run: getSystemMenuRun
 } = useRequest(getSystemMenu, {
   manual: true,
   onSuccess: (data) => {
-    console.log('成功', data);
     let systemMenu = data.data as SystemMenuDTO
     state.menuTableData = systemMenu.menus;
     state.tableKey = Math.random();
@@ -88,7 +114,6 @@ const onOpenAddSubMenu = (row: any) => {
 }
 
 const onOpenEditMenu = (row) => {
-  console.log(row)
   let ruleForm = editMenuRef.value.state.ruleForm;
   ruleForm.id = row.id;
   ruleForm.pid = row.pid;
@@ -105,7 +130,12 @@ const onOpenEditMenu = (row) => {
 
 
 const onTableRowDel = (row: { id: any; }) => {
-  deleteSystemRun({id: row.id});
+  deleteSystemMenuRun({id: row.id});
+}
+
+
+const onTableRowCopy = (row: { id: any; }) => {
+  copySystemMenuRun({id: row.id});
 }
 
 const getMenuData = computed(() => {
@@ -387,14 +417,23 @@ const rowDrop = () => {
           </el-icon>
           新增菜单
         </el-button>
+        <el-button v-show="state.deleteIds.length>0" :size="state.size" type="danger" class="ml10"
+                   @click="onTableRowbatchDel">
+          <el-icon>
+            <elementDelete/>
+          </el-icon>
+          批量删除
+        </el-button>
       </div>
       <el-table v-loading="getSystemMenuLoading" :data="getMenuData" style="width: 100%" default-expand-all
                 row-key="id"
                 size="large"
                 :key="state.tableKey"
+                @selection-change="handleSelectionChange"
                 @cell-mouse-enter.once='rowDrop'
                 :row-class-name="rowClassName"
                 :tree-props="{ children: 'children', hasChildren: 'hasChildren' }">
+        <el-table-column type="selection" width="55"/>
         <el-table-column label="菜单名称" show-overflow-tooltip>
           <template #default="scope">
             <SvgIcon :name="scope.row.icon"/>
@@ -420,16 +459,25 @@ const rowDrop = () => {
         </el-table-column>
         <el-table-column label="操作" show-overflow-tooltip>
           <template #default="scope">
-            <el-button v-if="scope.row.type === MenuType.menuGroup" size="small" type="text"
+            <el-button v-if="scope.row.type === MenuType.menuGroup" type="text"
                        @click="onOpenAddSubMenu(scope.row)">新增子菜单
             </el-button>
-            <el-button size="small" type="text" @click="onOpenEditMenu(scope.row)">修改</el-button>
+
+            <el-button type="text" @click="onOpenEditMenu(scope.row)">修改</el-button>
+
+            <el-popconfirm title="确认复制?" @confirm="onTableRowCopy(scope.row)">
+              <template #reference>
+                <el-button type="text">复制</el-button>
+              </template>
+            </el-popconfirm>
+
             <el-popconfirm title="确认删除?" @confirm="onTableRowDel(scope.row)">
               <template #reference>
-                <el-button size="small" type="text">删除
+                <el-button type="text">删除
                 </el-button>
               </template>
             </el-popconfirm>
+
           </template>
         </el-table-column>
       </el-table>

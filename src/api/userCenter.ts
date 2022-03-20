@@ -47,9 +47,8 @@ export const listSystem = () => {
     return request.post('/api/userCenter/system/list', {});
 }
 
-
-export const deleteSystem = (systemDeleteReq: object) => {
-    return request.post('/api/userCenter/menu/delete', systemDeleteReq);
+export const deleteSystemMenu = (systemMenuDeleteReq: object) => {
+    return request.post('/api/userCenter/menu/delete', systemMenuDeleteReq);
 }
 
 export interface SendVerifyCodeReq {
@@ -94,6 +93,14 @@ export const getSystemMenu = function (params: any) {
 
 export const moveSystemMenu = function (params: any) {
     return request.post('/api/userCenter/menu/moveSystemMenu', params);
+}
+
+export const copySystemMenu = (systemMenuCopyReq: object) => {
+    return request.post('/api/userCenter/menu/copy', systemMenuCopyReq);
+}
+
+export const batchDeleteSystemMenu = (systemMenubatchDeleteReq: object) => {
+    return request.post('/api/userCenter/menu/batchDelete', systemMenubatchDeleteReq);
 }
 
 export const userLogin = (userLoginReq: UserLoginReq) => {
