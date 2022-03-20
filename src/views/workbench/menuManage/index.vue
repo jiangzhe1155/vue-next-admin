@@ -1,16 +1,30 @@
 <script setup lang="ts">
 // 获取菜单列表
-import {computed, getCurrentInstance, onMounted, reactive, watch, watchEffect} from "vue";
-import {deleteSystem, getSystemMenu, listSystem, MenuDTO, MenuType, SystemDTO, SystemMenuDTO} from "/@/api/userCenter";
+import {
+  deleteSystem,
+  getSystemMenu,
+  listSystem,
+  MenuDTO,
+  MenuType,
+  moveSystemMenu,
+  SystemDTO,
+  SystemMenuDTO
+} from "/@/api/userCenter";
 import {useRequest} from "vue-request";
 import AddMenu from '/@/views/workbench/menuManage/component/addMenu.vue';
 import EditMenu from '/@/views/workbench/menuManage/component/editMenu.vue';
-import {ref} from "_vue@3.2.31@vue";
 import {Session} from "/@/utils/storage";
 import {initBackEndControlRoutes} from "/@/router/backEnd";
-import Sortable from 'sortablejs'
+import Sortable from 'sortablejs';
+import {computed, getCurrentInstance, reactive, ref, watch} from "vue";
 
 const {proxy} = getCurrentInstance() as any;
+
+const enum ActionType {
+  'insertUp' = 'insertUp',
+  'insertDown' = 'insertDown',
+  'insertIn' = 'insertIn'
+}
 
 const state = reactive({
   systemList: [] as SystemDTO[],
@@ -18,7 +32,10 @@ const state = reactive({
   currentName: '' as string,
   menuTableData: [] as MenuDTO[],
   size: "default",
-  menuArrayData: [] as MenuDTO[]
+  menuArrayData: [] as MenuDTO[],
+  actionType: ActionType.insertIn,
+  relationIndex: null,
+  tableKey: Math.random()
 })
 
 const addMenuRef = ref();
@@ -38,33 +55,29 @@ const {loading: deleteSystemLoading, run: deleteSystemRun} = useRequest(deleteSy
   }
 });
 
-const treeToTile = (treeData: any) => {
-  let arr = []
-  const expanded = data => {
-    if (data && data.length > 0) {
-      data.filter(d => d).forEach(e => {
-        arr.push(e)
-        expanded(e.children || [])
-      })
-    }
+const {loading: moveSystemMenuLoading, run: moveSystemMenuRun} = useRequest(moveSystemMenu, {
+  manual: true,
+  onSuccess: (data) => {
+    refreshTableData();
+  }, onError: () => {
   }
-  expanded(treeData)
-  return arr;
-}
-
+})
 
 const {
   loading: getSystemMenuLoading,
   run: getSystemMenuRun
 } = useRequest(getSystemMenu, {
-  manual: true, onSuccess: (data) => {
+  manual: true,
+  onSuccess: (data) => {
+    console.log('成功', data);
     let systemMenu = data.data as SystemMenuDTO
     state.menuTableData = systemMenu.menus;
-    state.menuArrayData = treeToTile(systemMenu.menus);
+    state.tableKey = Math.random();
   }
-});
+})
 
 const onOpenAddMenu = () => {
+  addMenuRef.value.state.isParentMenuSelectDisable = false;
   addMenuRef.value.openDialog();
 }
 
@@ -74,8 +87,8 @@ const onOpenAddSubMenu = (row: any) => {
   addMenuRef.value.openDialog();
 }
 
-
 const onOpenEditMenu = (row) => {
+  console.log(row)
   let ruleForm = editMenuRef.value.state.ruleForm;
   ruleForm.id = row.id;
   ruleForm.pid = row.pid;
@@ -120,14 +133,15 @@ function dfsFilter(menuTableData: MenuDTO[]) {
 
 const refreshTableData = () => {
   getSystemMenuRun({systemId: state.currentSelectSystemId}).then(() => {
-    // 如果
-    if (Session.get('systemId') === state.currentSelectSystemId) {
-      //初始化路由
-      initBackEndControlRoutes();
-      //初始化菜單
-      proxy.mittBus.emit('getBreadcrumbIndexSetFilterRoutes');
-    }
-  })
+        // 如果
+        if (Session.get('systemId') === state.currentSelectSystemId) {
+          //初始化路由
+          initBackEndControlRoutes();
+          //初始化菜單
+          proxy.mittBus.emit('getBreadcrumbIndexSetFilterRoutes');
+        }
+      }
+  )
 }
 
 watch(() => state.currentSelectSystemId, (systemId, oldSystemId) => {
@@ -138,25 +152,219 @@ watch(() => state.currentSelectSystemId, (systemId, oldSystemId) => {
 })
 
 
-// onMounted(() => {
-//   const tbody = document.querySelector('.el-table__body-wrapper tbody')
-//   Sortable.create(tbody, {
-//     // ghostClass: 'sortable-ghost',
-//
-//     onMove: function ({dragged, related}) {
-//       console.log(dragged, related);
-//       const oldRow = state.menuArrayData[dragged.rowIndex]
-//       const newRow = state.menuArrayData[related.rowIndex]
-//       if (oldRow.level !== newRow.level || oldRow.pid !== newRow.pid) {
-//         return false
-//       }
-//     },
-//     onEnd({newIndex, oldIndex}) {
-//       console.log(newIndex, oldIndex)
-//     }
-//   })
-// })
+const treeToTile = (treeData: any) => {
+  let arr = []
+  const expanded = data => {
+    if (data && data.length > 0) {
+      data.filter(d => d).forEach(e => {
+        arr.push(e)
+        expanded(e.children || [])
+      })
+    }
+  }
+  expanded(treeData)
+  return arr;
+}
 
+
+const arrayTreeSetLevel = (array, levelName = 'level', childrenName = 'children') => {
+  if (!Array.isArray(array)) {
+    return []
+  }
+  const recursive = (array, level = 0) => {
+    level++
+    return array.map(v => {
+      v[levelName] = level
+      const child = v[childrenName]
+      if (child && child.length) {
+        recursive(child, level)
+      }
+      return v
+    })
+  }
+  return recursive(array)
+}
+
+function isSubRow(root, node) {
+  if (root.id === node.id) {
+    return true;
+  }
+
+  if (root.children) {
+    for (let r of root.children) {
+      if (isSubRow(r, node)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+const rowClassName = ({row, rowIndex}) => {
+  if (state.relationIndex == rowIndex) {
+    return 'drag-' + state.actionType;
+  }
+}
+
+const rowDrop = () => {
+  console.log('初始化sort')
+  const tbody = document.querySelector('.el-table__body-wrapper tbody')
+  Sortable.create(tbody, {
+    animation: 300,
+    delay: 200,
+    dragClass: "dragClass", //设置拖拽样式类名
+    ghostClass: "ghostClass", //设置拖拽停靠样式类名
+    onChoose({oldIndex}: any) {
+      // 把树形的结构转为列表再进行拖拽
+      state.menuArrayData = treeToTile(dfsFilter(state.menuTableData));
+      state.menuTableData = arrayTreeSetLevel(dfsFilter(state.menuTableData));
+    },
+    onMove: function ({dragged, related, draggedRect, relatedRect}, {clientY}) {
+      const oldRow = state.menuArrayData[dragged.rowIndex];
+      const newRow = state.menuArrayData[related.rowIndex];
+
+      if (!newRow || !newRow.id || !oldRow || !oldRow.id) {
+        console.log('空异常');
+        return false;
+      }
+      if (oldRow.level < newRow.level) {
+        if (oldRow.type === MenuType.menu) {
+          if (newRow.type === MenuType.menu) {
+            // console.log("菜单移动到了菜单子节点",newRow.name);
+          } else {
+            // console.log("菜单移动到了目录子节点",newRow.name);
+          }
+        } else {
+          if (isSubRow(oldRow, newRow)) {
+            // console.log("目录移动到了自己的子节点：禁止");
+            return false;
+          } else {
+            if (newRow.type === MenuType.menu) {
+              // console.log("目录移动到了其他的子菜单节点：禁止");
+              return false;
+            } else {
+              // console.log("目录移动到了其他的子目录节点",newRow.name);
+            }
+          }
+        }
+      } else if (oldRow.level > newRow.level) {
+        if (oldRow.type === MenuType.menu) {
+          // console.log("菜单移动到了父节点",newRow.name);
+        } else {
+          // console.log("目录移动到了父节点",newRow.name);
+        }
+      } else {
+        if (oldRow.pid === newRow.pid) {
+          // console.log("同级移动,同一个父级",newRow.name);
+        } else {
+          // console.log("同级移动,不同的父级",newRow.name);
+        }
+      }
+
+      let isSuccess = true;
+
+
+      // 根据相对位置获取当前的操作
+      let actionType = ActionType.insertIn;
+      const num = (relatedRect.bottom - relatedRect.top) / 7;
+      if (clientY < relatedRect.top + 2 * num && clientY > relatedRect.top) {
+        actionType = ActionType.insertUp;
+      } else if (clientY > relatedRect.top + num * 5 && clientY < relatedRect.bottom) {
+        actionType = ActionType.insertDown;
+      } else if (clientY >= relatedRect.top + 2 * num && clientY <= relatedRect.top + num * 5) {
+        actionType = ActionType.insertIn;
+      } else {
+        isSuccess = false;
+      }
+
+      if (!isSuccess) {
+        state.relationIndex = null;
+        return false;
+      }
+
+      if (oldRow.type == MenuType.menu) {
+        if (newRow.type == MenuType.menuGroup) {
+          //只能进入
+          if (actionType != ActionType.insertIn) {
+            // console.log('菜单移动到目录禁止,actionType', actionType)
+            isSuccess = false;
+          }
+        } else {
+          // 只能上去或者下去
+          if (actionType != ActionType.insertUp && actionType != ActionType.insertDown) {
+            // console.log('菜单移动到菜单禁止,actionType', actionType)
+            isSuccess = false;
+          }
+        }
+      } else {
+        if (newRow.type == MenuType.menuGroup) {
+          // 能进去、上去
+          if (actionType === ActionType.insertDown) {
+            // console.log('目录移动到目录下方禁止,actionType', actionType)
+            isSuccess = false;
+          }
+        } else {
+          // 不允许
+          // console.log('目录移动到菜单禁止,actionType', actionType)
+          isSuccess = false;
+        }
+      }
+
+      if (!isSuccess) {
+        state.relationIndex = null;
+        return false;
+      }
+
+      if (state.relationIndex !== related.rowIndex) {
+        state.relationIndex = related.rowIndex;
+      }
+
+      state.actionType = actionType;
+      // console.log(`从${oldRow.type}节点${oldRow.name} 移动到 ${newRow.type}节点${newRow.name} ${state.actionType}`);
+      return false;
+    },
+    onEnd({newIndex, oldIndex}) {
+      if (state.relationIndex == null) {
+        console.log('不是真实的移动');
+        return;
+      }
+
+      if (state.relationIndex === oldIndex) {
+        console.log('没有移动');
+      }
+
+      const oldRow = state.menuArrayData[oldIndex];
+      const newRow = state.menuArrayData[state.relationIndex];
+      // console.log(`从${oldRow.type}节点${oldRow.name} 移动到 ${newRow.type}节点${newRow.name} ${state.actionType}`);
+
+      //优化不必要的移动
+      let canSkip = false;
+      if (state.actionType == ActionType.insertDown) {
+        if (state.relationIndex + 1 === oldIndex) {
+          // console.log('不必要的移动');
+          canSkip = true;
+        }
+      } else if (state.actionType == ActionType.insertIn) {
+        // 本身就是直接子集
+        for (let child of newRow.children) {
+          if (child.id === oldRow.id) {
+            // console.log('不必要的移动');
+            canSkip = true;
+          }
+        }
+      } else {
+        if (state.relationIndex - 1 === oldIndex) {
+          // console.log('不必要的移动');
+          canSkip = true;
+        }
+      }
+      state.relationIndex = null;
+      if (!canSkip) {
+        moveSystemMenuRun({id: oldRow.id, targetId: newRow.id, moveAction: state.actionType});
+      }
+    }
+  })
+}
 
 </script>
 <template>
@@ -173,12 +381,6 @@ watch(() => state.currentSelectSystemId, (systemId, oldSystemId) => {
         </el-select>
         <el-input :size="state.size" v-model="state.currentName" placeholder="请输入菜单名称" style="max-width: 180px"
                   class="ml10"></el-input>
-        <!--        <el-button :size="state.size" type="primary" class="ml10" @click="onSearch()">-->
-        <!--          <el-icon>-->
-        <!--            <elementSearch/>-->
-        <!--          </el-icon>-->
-        <!--          查询-->
-        <!--        </el-button>-->
         <el-button :size="state.size" type="success" class="ml10" @click="onOpenAddMenu">
           <el-icon>
             <elementFolderAdd/>
@@ -186,8 +388,12 @@ watch(() => state.currentSelectSystemId, (systemId, oldSystemId) => {
           新增菜单
         </el-button>
       </div>
-      <el-table v-loading="getSystemMenuLoading" :data="getMenuData" style="width: 100%"
+      <el-table v-loading="getSystemMenuLoading" :data="getMenuData" style="width: 100%" default-expand-all
                 row-key="id"
+                size="large"
+                :key="state.tableKey"
+                @cell-mouse-enter.once='rowDrop'
+                :row-class-name="rowClassName"
                 :tree-props="{ children: 'children', hasChildren: 'hasChildren' }">
         <el-table-column label="菜单名称" show-overflow-tooltip>
           <template #default="scope">
@@ -240,18 +446,16 @@ export default {
 }
 </script>
 
-<style>
-.demo-tabs > .el-tabs__content {
-  color: #6b778c;
-  font-size: 32px;
-  font-weight: 600;
+<style lang='scss'>
+.drag-insertIn > td {
+  background: #409eff
 }
 
-.demo-tabs > .el-tabs__header {
-  border-right-width: 1px;
+.drag-insertDown > td {
+  border-bottom: 4px solid #409eff !important;
 }
 
-.el-tabs--left .el-tabs__content {
-  height: 100%;
+.drag-insertUp > td {
+  border-top: 4px solid #409eff !important;
 }
 </style>
