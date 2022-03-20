@@ -3,7 +3,7 @@ import App from './App.vue';
 import router from './router';
 import {store, key} from './store';
 import {directive} from '/@/utils/directive';
-import {i18n} from '/@/i18n/index';
+import {i18n} from '/@/i18n';
 import other from '/@/utils/other';
 import 'virtual:windi-base.css'
 import 'virtual:windi-components.css'
@@ -18,6 +18,7 @@ import screenShort from 'vue-web-screen-shot';
 import VueGridLayout from 'vue-grid-layout';
 import {setGlobalOptions} from 'vue-request';
 
+
 const app = createApp(App);
 
 directive(app);
@@ -30,11 +31,12 @@ app.use(router)
     .use(screenShort, {enableWebRtc: false})
     .use(VueGridLayout)
     .mount('#app');
-
 app.config.globalProperties.mittBus = mitt();
 
 
 setGlobalOptions({
     debounceInterval: 300
 });
+
+
 

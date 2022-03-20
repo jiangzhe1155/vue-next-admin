@@ -27,11 +27,12 @@ const state = reactive({
     }]
   },
   isShowDialog: false,
-  props: {
+  cascaderProps: {
     expandTrigger: 'hover',
     value: 'id',
     label: 'name',
-    emitPath: false
+    emitPath: false,
+    checkStrictly:true
   },
   menus: [],
   isParentMenuSelectDisable: false
@@ -101,8 +102,7 @@ defineExpose({
 <template>
   <div class="system-add-menu-container">
     <el-dialog title="新增菜单" v-model="state.isShowDialog" width="500px" destroy-on-close>
-      {{ state }}
-      <el-form :model="state.ruleForm" label-width="80px" :rules="state.rules" ref="formRef">
+      <el-form :model="state.ruleForm" size="default" label-width="80px" :rules="state.rules" ref="formRef">
         <el-row :gutter="35">
           <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24" class="mb20">
             <el-form-item label="上级菜单">
@@ -110,7 +110,7 @@ defineExpose({
                   clearable
                   v-model="state.ruleForm.pid"
                   :options="getMenus"
-                  :props="state.props"
+                  :props="state.cascaderProps"
                   :disabled="state.isParentMenuSelectDisable"
               >
               </el-cascader>

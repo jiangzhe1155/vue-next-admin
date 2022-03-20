@@ -67,7 +67,7 @@ export interface MenuDTO {
     type: string,
     typeName: string,
     name: string,
-    pId: string,
+    pid: string,
     icon: string,
     level: number,
     children: MenuDTO[]
@@ -83,10 +83,6 @@ export interface SystemMenuDTO {
     menus: MenuDTO
 }
 
-export const getAllSystemRoute = () => {
-    return request.post('/api/userCenter/menu/getAllSystemRoute', {});
-}
-
 export const getSystemRoute = function (params: any) {
     return request.post('/api/userCenter/menu/getSystemRoute', params);
 }
@@ -96,6 +92,9 @@ export const getSystemMenu = function (params: any) {
     return request.post('/api/userCenter/menu/getSystemMenu', params);
 }
 
+export const moveSystemMenu = function (params: any) {
+    return request.post('/api/userCenter/menu/moveSystemMenu', params);
+}
 
 export const userLogin = (userLoginReq: UserLoginReq) => {
     return request.post('/api/userCenter/user/login', userLoginReq);
