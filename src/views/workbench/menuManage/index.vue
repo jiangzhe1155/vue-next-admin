@@ -417,7 +417,7 @@ const rowDrop = () => {
           </el-icon>
           新增菜单
         </el-button>
-        <el-button v-show="state.deleteIds.length>0" :size="state.size" type="danger" class="ml10"
+        <el-button :disabled="state.deleteIds.length===0" :size="state.size" type="danger" class="ml10"
                    @click="onTableRowbatchDel">
           <el-icon>
             <elementDelete/>
