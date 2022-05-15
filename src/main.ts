@@ -8,8 +8,6 @@ import other from '/@/utils/other';
 import 'virtual:windi-base.css'
 import 'virtual:windi-components.css'
 import 'virtual:windi-utilities.css'
-
-
 import ElementPlus from 'element-plus';
 import 'element-plus/dist/index.css';
 import '/@/theme/index.scss';
@@ -17,7 +15,6 @@ import mitt from 'mitt';
 import screenShort from 'vue-web-screen-shot';
 import VueGridLayout from 'vue-grid-layout';
 import {setGlobalOptions} from 'vue-request';
-
 
 const app = createApp(App);
 
@@ -32,7 +29,6 @@ app.use(router)
     .use(VueGridLayout)
     .mount('#app');
 app.config.globalProperties.mittBus = mitt();
-
 
 setGlobalOptions({
     debounceInterval: 300

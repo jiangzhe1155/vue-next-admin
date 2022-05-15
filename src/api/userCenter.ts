@@ -120,4 +120,18 @@ export const updateSystemMenu = function (menuUpdateReq: object) {
 }
 
 
+export const getBackendCategoryChildrenList = function (pid :string = '') {
+    return request.post('/api/userCenter/backend/category/getChildren', {'pid':pid});
+}
+
+
+export const getBackendCategoryTree = function () {
+    return request.post('/api/userCenter/backend/category/getTree', {});
+}
+
+export const addBackendCategory = function (param: { }) {
+    return request.post('/api/userCenter/backend/category/add', param);
+}
+
+
 

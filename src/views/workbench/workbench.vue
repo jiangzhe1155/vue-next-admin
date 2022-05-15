@@ -14,7 +14,7 @@ if (value.path == '/') {
   if (systemId) {
     router.replace("/");
   } else {
-    useRequest(listSystem({}), {
+    useRequest(listSystem(), {
       onSuccess: ((systemListData: any) => {
         let systems: SystemDTO[] = systemListData.data;
         let systemId = systems[0].id;

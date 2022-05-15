@@ -1,10 +1,9 @@
 <script setup lang="ts">
 
-import {computed, onMounted, reactive, ref} from "vue";
-import {addSystemMenu, MenuDTO, MenuType, updateSystemMenu} from "/@/api/userCenter";
+import {computed, reactive, ref} from "vue";
+import {MenuType, updateSystemMenu} from "/@/api/userCenter";
 import {defineProps, defineEmits} from 'vue'
 import {useRequest} from "vue-request";
-import {initBackEndControlRoutes, setBackEndControlRefreshRoutes} from "/@/router/backEnd";
 import IconSelector from "/@/components/iconSelector/index.vue";
 import {FormInstance} from "element-plus";
 

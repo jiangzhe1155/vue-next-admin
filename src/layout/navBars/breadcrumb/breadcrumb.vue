@@ -27,6 +27,10 @@ import { useStore } from '/@/store/index';
 export default {
 	name: 'layoutBreadcrumb',
 	setup() {
+
+
+
+
 		const { proxy } = getCurrentInstance() as any;
 		const store = useStore();
 		const route = useRoute();
