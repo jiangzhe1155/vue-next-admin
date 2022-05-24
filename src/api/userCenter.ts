@@ -124,13 +124,45 @@ export const getBackendCategoryChildrenList = function (pid :string = '') {
     return request.post('/api/userCenter/backend/category/getChildren', {'pid':pid});
 }
 
+export const deleteBackendCategory = function (param:any) {
+    return request.post('/api/userCenter/backend/category/delete', param);
+}
+
 
 export const getBackendCategoryTree = function () {
     return request.post('/api/userCenter/backend/category/getTree', {});
 }
 
+export const getBackendCategoryDetail = function (param:{}) {
+    return request.post('/api/userCenter/backend/category/detail', param);
+}
+
 export const addBackendCategory = function (param: { }) {
     return request.post('/api/userCenter/backend/category/add', param);
+}
+
+
+export const updateBackendCategory = function (param: { }) {
+    return request.post('/api/userCenter/backend/category/update', param);
+}
+
+export const detailBackendCategory = function (param: {}) {
+    return request.post('/api/userCenter/backend/category/detail', param);
+}
+
+export const getFrontCategoryTree = function () {
+    return request.post('/api/userCenter/front/category/getTree', {});
+}
+
+
+export const getItemPageData = function (param) {
+    return request.post('/api/userCenter/item/page', param);
+}
+
+
+
+export const addBackendCategoryProperty = function (param) {
+    return request.post('/api/userCenter/property/addProductProperty', param);
 }
 
 
