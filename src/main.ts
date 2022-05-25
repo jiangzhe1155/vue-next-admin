@@ -34,5 +34,3 @@ setGlobalOptions({
     debounceInterval: 300
 });
 
-
-

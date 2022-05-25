@@ -1,5 +1,6 @@
 import request from '/@/utils/request';
 
+import OSS from "ali-oss";
 /**
  * 用户登录
  * @param params 要传的参数值
@@ -25,3 +26,11 @@ export function signOut(params: object) {
 		data: params,
 	});
 }
+
+
+export const client = new OSS({
+	region: 'oss-cn-shenzhen',//节点
+	accessKeyId: 'LTAIYkHJxTeKUftZ',
+	accessKeySecret: 'sJ43H04r23wtTCZHurA0OLqyf01k7W',
+	bucket: 'jiangzhe-eshop'
+})

@@ -160,10 +160,11 @@ export const getItemPageData = function (param) {
 }
 
 
-
 export const addBackendCategoryProperty = function (param) {
     return request.post('/api/userCenter/property/addProductProperty', param);
 }
 
-
+export const addBackendCategoryPropertyValue = function (param) {
+    return request.post('/api/userCenter/property/addProductPropertyValue', param);
+}
 
