@@ -519,7 +519,6 @@ watch(state.addForm.saleProperties, () => {
         <span class="text-xl">发布商品</span>
       </template>
       <template #default>
-        <!--        {{ state.itemSaleProperties }}-->
         <el-form label-width="100px" size="default">
           <el-form-item label="商品类型">
             <el-select v-model="state.addForm.type">
