@@ -120,11 +120,11 @@ export const updateSystemMenu = function (menuUpdateReq: object) {
 }
 
 
-export const getBackendCategoryChildrenList = function (pid :string = '') {
-    return request.post('/api/userCenter/backend/category/getChildren', {'pid':pid});
+export const getBackendCategoryChildrenList = function (pid: string = '') {
+    return request.post('/api/userCenter/backend/category/getChildren', {'pid': pid});
 }
 
-export const deleteBackendCategory = function (param:any) {
+export const deleteBackendCategory = function (param: any) {
     return request.post('/api/userCenter/backend/category/delete', param);
 }
 
@@ -133,16 +133,16 @@ export const getBackendCategoryTree = function () {
     return request.post('/api/userCenter/backend/category/getTree', {});
 }
 
-export const getBackendCategoryDetail = function (param:{}) {
+export const getBackendCategoryDetail = function (param: {}) {
     return request.post('/api/userCenter/backend/category/detail', param);
 }
 
-export const addBackendCategory = function (param: { }) {
+export const addBackendCategory = function (param: {}) {
     return request.post('/api/userCenter/backend/category/add', param);
 }
 
 
-export const updateBackendCategory = function (param: { }) {
+export const updateBackendCategory = function (param: {}) {
     return request.post('/api/userCenter/backend/category/update', param);
 }
 
@@ -166,5 +166,18 @@ export const addBackendCategoryProperty = function (param) {
 
 export const addBackendCategoryPropertyValue = function (param) {
     return request.post('/api/userCenter/property/addProductPropertyValue', param);
+}
+
+export const getAllSaleProperty = function (param) {
+    return request.post('/api/userCenter/property/getAllSaleProperty', param);
+}
+
+export const addSaleProperty = function (param) {
+    return request.post('/api/userCenter/property/addSaleProperty', param);
+}
+
+
+export const addItem = function (param) {
+    return request.post('/api/userCenter/item/add', param);
 }
 
